@@ -1,0 +1,953 @@
+<title>Teams-o-lantern Build Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: one phone-first column, a sticky progress bar, phases as bands of numbered steps with a diagram where it helps. */
+:root{
+  --bg:#F4F3F7; --panel:#FFFFFF; --ink:#1E1B26; --muted:#615B6E; --rule:#DDD9E6;
+  --el:#7347D9; --el-soft:#EEE8FD; --pumpkin:#D7641B; --pumpkin-soft:#FCEBDD;
+  --warn:#B93C0A; --warn-soft:#FFF0E6; --ok:#2F7D4F;
+  --board:#1F2A2E; --board-edge:#0F1517; --board-ink:#E7F0EE; --module:#1D57B5; --pcbg:#1E5A3C;
+  --pin:#C69D23; --term:#4A8BD6; --strip:#24212A; --led:#FBF8EF; --foam:#F0A15A; --foam-edge:#BE6A24;
+  --w5v:#D7392F; --wgnd:#2B2830; --wdata:#2E9A61; --wsig:#C98F06; --tblock:#3E9B5B; --tblock-ink:#FFFFFF; --screw:#D3D6DA;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141218; --panel:#1D1A23; --ink:#ECE9F3; --muted:#A59EB4; --rule:#302B3A;
+  --el:#A688FF; --el-soft:#2A2241; --pumpkin:#F08D3E; --pumpkin-soft:#36251A;
+  --warn:#FF8B4E; --warn-soft:#38221A; --ok:#6BCB91;
+  --board:#22313A; --board-edge:#43596A; --board-ink:#DDE9E6; --module:#3B73D1; --pcbg:#2C6E4D;
+  --pin:#D9B44A; --term:#6AA4EA; --strip:#0E0D11; --led:#F4F1E8; --foam:#B9682A; --foam-edge:#E89A55;
+  --w5v:#FF6157; --wgnd:#D8D2E3; --wdata:#4CC98A; --wsig:#F2BE35; --tblock:#2F7F49; --tblock-ink:#F2FFF6; --screw:#A9AFB6; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#141218; --panel:#1D1A23; --ink:#ECE9F3; --muted:#A59EB4; --rule:#302B3A;
+  --el:#A688FF; --el-soft:#2A2241; --pumpkin:#F08D3E; --pumpkin-soft:#36251A;
+  --warn:#FF8B4E; --warn-soft:#38221A; --ok:#6BCB91;
+  --board:#22313A; --board-edge:#43596A; --board-ink:#DDE9E6; --module:#3B73D1; --pcbg:#2C6E4D;
+  --pin:#D9B44A; --term:#6AA4EA; --strip:#0E0D11; --led:#F4F1E8; --foam:#B9682A; --foam-edge:#E89A55;
+  --w5v:#FF6157; --wgnd:#D8D2E3; --wdata:#4CC98A; --wsig:#F2BE35; --tblock:#2F7F49; --tblock-ink:#F2FFF6; --screw:#A9AFB6; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+a{color:var(--el)}
+code,kbd,.mono{font-family:var(--mono);font-size:.88em}
+code{background:var(--el-soft);padding:.08em .35em;border-radius:4px}
+.wrap{max-width:760px;margin:0 auto}
+
+/* sticky progress header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);
+  margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0;padding:10px max(16px,env(safe-area-inset-left,0px)) 10px}
+.top .wrap{display:grid;gap:8px}
+.top-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.02em;text-transform:uppercase;line-height:1}
+.brand span{color:var(--el)}
+.bar{flex:1 1 140px;height:8px;border-radius:99px;background:var(--rule);overflow:hidden;min-width:100px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--el),var(--pumpkin));transition:width .3s}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.next{font:600 13px var(--body);color:var(--panel);background:var(--ink);border:0;border-radius:99px;padding:6px 12px;cursor:pointer}
+.next:focus-visible,.phases a:focus-visible,.check input:focus-visible{outline:3px solid var(--el);outline-offset:2px}
+.phases{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.phases a{flex:0 0 auto;text-decoration:none;color:var(--ink);font-size:13px;border:1px solid var(--rule);background:var(--panel);
+  border-radius:99px;padding:4px 10px;display:flex;gap:6px;align-items:center}
+.phases a b{font-family:var(--display);font-size:15px;letter-spacing:.03em}
+.phases a span{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.phases a.complete{border-color:var(--ok)}
+.phases a.complete span{color:var(--ok)}
+.sync{font-size:12px;color:var(--muted)}
+.sync[data-state="on"]::before{content:"● ";color:var(--ok)}
+
+/* intro */
+header.intro{padding:28px 0 8px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(40px,9vw,64px);line-height:.95;letter-spacing:.01em;text-transform:uppercase;margin:0 0 14px;text-wrap:balance}
+h1 em{font-style:normal;color:var(--el)}
+.lede{font-size:18px;max-width:62ch;margin:0 0 20px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.box h2{font:700 13px var(--body);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;color:var(--muted)}
+.box ol,.box ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.box.changes{border-left:4px solid var(--el)}
+.box.safety{border-left:4px solid var(--warn);background:var(--warn-soft)}
+.box.safety h2{color:var(--warn)}
+
+/* phases */
+.phase{margin-top:44px;scroll-margin-top:120px}
+.phase-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:6px}
+.phase-head .letter{font-family:var(--display);font-weight:800;font-size:56px;line-height:.8;color:var(--el)}
+.phase-head h2{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:.02em;text-transform:uppercase;margin:0;line-height:1}
+.phase-intro{color:var(--muted);margin:10px 0 4px;max-width:62ch}
+
+/* steps */
+.step{display:grid;grid-template-columns:56px minmax(0,1fr);gap:4px 14px;padding:20px 0;border-bottom:1px solid var(--rule);scroll-margin-top:120px}
+.check{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding-top:2px}
+.check input{appearance:none;-webkit-appearance:none;width:30px;height:30px;border:2px solid var(--muted);border-radius:8px;margin:0;display:grid;place-content:center;cursor:pointer;background:var(--panel)}
+.check input::after{content:"";width:12px;height:7px;border-left:3px solid var(--panel);border-bottom:3px solid var(--panel);transform:rotate(-45deg) translate(1px,-1px);opacity:0}
+.check input:checked{background:var(--ok);border-color:var(--ok)}
+.check input:checked::after{opacity:1}
+.code{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:.03em}
+.step h3{font-size:19px;line-height:1.3;margin:2px 0 8px;text-wrap:balance}
+.step p{margin:0 0 10px;max-width:64ch}
+.step ol,.step ul{margin:0 0 10px;padding-left:22px;display:grid;gap:6px;max-width:64ch}
+.step.is-done h3{color:var(--muted);text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--ok)}
+.step.is-done .body > :not(h3){opacity:.62}
+.test{border-left:3px solid var(--ok);padding:8px 12px;background:var(--panel);border-radius:0 8px 8px 0;margin:4px 0 10px}
+.test b,.note b,.warn b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.test b{color:var(--ok)}
+.note{border-left:3px solid var(--rule);padding:6px 12px;color:var(--muted);margin:4px 0 10px;font-size:15px}
+.warn{border-left:3px solid var(--warn);padding:8px 12px;background:var(--warn-soft);border-radius:0 8px 8px 0;margin:4px 0 10px;font-size:15px}
+.warn b{color:var(--warn)}
+pre{background:var(--board);color:var(--board-ink);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 10px;font-size:13.5px;line-height:1.5}
+pre code{background:none;padding:0;color:inherit}
+
+/* figures */
+figure{margin:6px 0 14px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.fig-scroll{overflow-x:auto}
+.fig-scroll > svg{min-width:540px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px;color:var(--muted);margin-top:8px;padding:0;list-style:none}
+.legend li{display:flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:0;border-top:3px solid var(--ink)}
+.sw.grey{border-top-color:var(--muted)} .sw.dash{border-top:3px dashed var(--el)} .sw.solid-el{border-top-color:var(--el)}
+.sw.blk{height:12px;width:12px;border:0;background:var(--ink);border-radius:2px}
+.sw.hole{width:12px;height:12px;border:2px solid var(--ink);border-radius:50%}
+.sw.box{border-top:2px dashed var(--muted)}
+
+.dg{display:block;width:100%;height:auto}
+.dg text{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+.dg .sub,.dg .tag{font-size:10.5px;fill:var(--muted)}
+.dg .strong{font-weight:500}
+.dg .part{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.dg .board{fill:var(--board);stroke:var(--board-edge);stroke-width:1.2}
+.dg .module{fill:var(--module);stroke:var(--board-edge);stroke-width:1.2}
+.dg .pcbg{fill:var(--pcbg);stroke:var(--board-edge);stroke-width:1.2}
+.dg .on-board{fill:var(--board-ink)}
+.dg .pin{fill:var(--pin);stroke:var(--board-edge);stroke-width:.8}
+.dg .term{fill:var(--term);stroke:var(--board-edge);stroke-width:.8}
+.dg .link{fill:none;stroke:var(--muted);stroke-width:1.6}
+.dg .w{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.dg .thin{stroke-width:2.2}
+.dg .w5{stroke:var(--w5v)} .dg .wg{stroke:var(--wgnd)} .dg .wd{stroke:var(--wdata)} .dg .ws{stroke:var(--wsig)} .dg .wel{stroke:var(--el)}
+.dg .cut{fill:none;stroke:var(--warn);stroke-width:2;stroke-dasharray:6 4}
+.dg .warn-t{fill:var(--warn);font-weight:500}
+.dg .el-t{fill:var(--el);font-weight:500}
+.dg .stripb{fill:var(--strip);stroke:var(--ink);stroke-width:.8}
+.dg .led{fill:var(--led);stroke:var(--muted);stroke-width:.8}
+.dg .pad{fill:var(--pin)}
+.dg .pot{fill:var(--pumpkin);stroke:var(--board-edge);stroke-width:1}
+.dg .potslot{stroke:var(--board-edge);stroke-width:3;stroke-linecap:round}
+.dg .ccw{fill:none;stroke:var(--board-ink);stroke-width:2}
+.dg .arrowfill{fill:var(--board-ink)}
+.dg .cap{fill:var(--ink)}
+.dg .foam{fill:var(--foam);stroke:var(--foam-edge);stroke-width:1}
+.dg .hole-bg{fill:var(--panel)}
+.dg .wire-c{fill:var(--el)}
+.dg .glue{fill:var(--el-soft);stroke:var(--muted);stroke-width:.8;opacity:.9}
+.dg .dim{stroke:var(--muted);stroke-width:1;fill:none}
+.dg .lead{stroke:var(--muted);stroke-width:1;fill:none}
+.dg .card{fill:var(--panel);stroke:var(--muted);stroke-width:3}
+.dg .ray{stroke:var(--pumpkin);stroke-width:1.4;stroke-dasharray:4 3;fill:none}
+.dg .paper{stroke:var(--ink);stroke-width:2.5}
+.dg .dome{fill:var(--led);stroke:var(--muted)}
+.dg .jumpx{fill:none;stroke:var(--el);stroke-width:2;stroke-dasharray:6 4}
+.dg .porch{stroke:var(--muted);stroke-width:1.5}
+.dg .stem{fill:#5C6B3A;stroke:var(--board-edge)}
+.dg .ledind{fill:#F5A524}
+.dg .tblock{fill:var(--tblock);stroke:var(--board-edge);stroke-width:1}
+.dg .tb-t{fill:var(--tblock-ink)}
+.dg .screw{fill:var(--screw);stroke:var(--board-edge);stroke-width:.8}
+.dg .halo{fill:none;stroke:var(--panel);stroke-width:9;stroke-linejoin:round}
+.dg .elglow{fill:none;stroke:var(--el);stroke-width:5;stroke-linecap:round}
+
+.face{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+.face text{font-family:var(--body);font-size:1.3px;fill:var(--muted)}
+.face .reg{fill:var(--muted);stroke:var(--muted);stroke-width:.5}
+.face .cover{fill:var(--panel)}
+.face .regline{fill:none;stroke:var(--muted);stroke-width:.25}
+.face .cg{fill:none;stroke:var(--el);stroke-width:.5;stroke-dasharray:1 .6}
+.face .tcut{fill:var(--ink)}
+.face .hole{fill:var(--panel);stroke:var(--ink);stroke-width:.22}
+.face .hnum circle{fill:var(--ink)}
+.face .hnum text{fill:var(--panel);font-size:1.35px;font-weight:700}
+.face .pirh{fill:none;stroke:var(--ink);stroke-width:.25}
+.face .elbody{fill:var(--el);stroke:var(--el);stroke-width:1}
+.face .elline{fill:none;stroke:var(--el);stroke-width:.5}
+.face .jump{fill:none;stroke:var(--el);stroke-width:.3;stroke-dasharray:.8 .5}
+.face .ahead{fill:var(--el)}
+.face .lbox{fill:none;stroke:var(--muted);stroke-width:.2;stroke-dasharray:.6 .4}
+.face .el-t{fill:var(--el);font-weight:700}
+
+/* reference */
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl{overflow-x:auto;background:var(--panel);border:1px solid var(--rule);border-radius:12px;margin:8px 0 18px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+details{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 14px;margin:0 0 8px}
+summary{cursor:pointer;font-weight:600}
+details p{margin:8px 0 2px}
+.ref h3{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 6px}
+.status{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0 18px;padding:0;list-style:none}
+.status li{display:flex;gap:8px;align-items:center;font-size:14.5px;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 10px}
+.dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
+footer{margin-top:40px;color:var(--muted);font-size:14px}
+@media (max-width:480px){
+  .step{grid-template-columns:44px minmax(0,1fr);gap:4px 10px}
+  .phase-head .letter{font-size:46px}
+  .lede{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){ .bar i{transition:none} }
+</style>
+
+<div class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand">Teams-o-<span>lantern</span></div>
+      <div class="bar" aria-hidden="true"><i id="prog-fill"></i></div>
+      <div class="count" id="prog-text" aria-live="polite">0 of 26</div>
+      <button class="next" id="next-btn" type="button">Next step</button>
+    </div>
+    <nav class="phases" aria-label="Phases">
+      <a href="#phase-a"><b>A</b> Bench <span data-count="a">0/9</span></a>
+      <a href="#phase-b"><b>B</b> Carve <span data-count="b">0/7</span></a>
+      <a href="#phase-c"><b>C</b> Light + EL <span data-count="c">0/3</span></a>
+      <a href="#phase-d"><b>D</b> Install <span data-count="d">0/4</span></a>
+      <a href="#phase-e"><b>E</b> Porch <span data-count="e">0/3</span></a>
+      <a href="#reference"><b>R</b> Reference</a>
+    </nav>
+    <div class="sync" id="sync" data-state="local">Saved in this browser</div>
+  </div>
+</div>
+
+<main class="wrap">
+<header class="intro">
+  <h1>Teams-o-<em>lantern</em> build</h1>
+  <p class="lede">A foam pumpkin that rings like an incoming Teams call when someone walks up, while a purple EL-wire outline of the logo lights up with it. Work through the five phases in order. Each step adds one thing, so when something doesn't work you know exactly where to look.</p>
+
+  <div class="box changes">
+    <h2>Current design</h2>
+    <ol>
+      <li><b>The EL wire is the only light.</b> It traces the outer outline of the logo: both heads and the body. No T cut, no LED strip, no light box.</li>
+      <li><b>Template page&nbsp;4</b> lines up with the groove you already cut and marks the three EL wire holes.</li>
+    </ol>
+  </div>
+  <div class="box safety">
+    <h2>Safety</h2>
+    <ul>
+      <li>Unplug the USB cable before you touch any screw terminal.</li>
+      <li>Hot-knife the foam outdoors, wearing the respirator. Take a break every 30 minutes.</li>
+      <li>The EL inverter puts out about 100&nbsp;V AC at very low current. Seal the cut end of the wire and don't handle it while it's lit.</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h2>Tools</h2>
+    <p style="margin:0">Bench: 2&nbsp;mm flat screwdriver, scissors, wire strippers or a sharp knife, hot glue gun, ruler, pencil, tape. Garage: the foam cutter kit, respirator, a wooden skewer.</p>
+  </div>
+</header>
+
+<!-- ============================ PHASE A ============================ -->
+<section class="phase" id="phase-a">
+  <div class="phase-head"><span class="letter">A</span><h2>Bench electronics</h2></div>
+  <p class="phase-intro">Wire and test everything on the table before the pumpkin gets involved. If a part is dead, you find out now.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg class="dg" viewBox="0 0 700 270" role="img" aria-label="System overview: the adapter powers the Feather board, which drives the PIR sensor, the speaker, and a MOSFET module that switches the EL inverter feeding the EL wire.">
+      <rect class="part" x="20" y="20" width="140" height="48" rx="8"/><text x="90" y="41" text-anchor="middle" class="strong">5 V · 3 A</text><text x="90" y="57" text-anchor="middle" class="sub">USB-A adapter</text>
+      <rect class="board" x="220" y="86" width="200" height="76" rx="10"/><text x="320" y="118" text-anchor="middle" class="on-board strong">PROP-MAKER</text><text x="320" y="136" text-anchor="middle" class="on-board">Feather RP2040</text>
+      <rect class="part" x="520" y="14" width="160" height="44" rx="8"/><text x="600" y="41" text-anchor="middle">PIR sensor</text>
+      <rect class="part" x="520" y="86" width="160" height="44" rx="8"/><text x="600" y="113" text-anchor="middle">Speaker 4 Ω</text>
+      <rect class="module" x="220" y="210" width="200" height="44" rx="8"/><text x="320" y="237" text-anchor="middle" class="on-board">MOSFET module</text>
+      <rect class="part" x="460" y="210" width="104" height="44" rx="8"/><text x="512" y="237" text-anchor="middle">inverter</text>
+      <path class="link" d="M160 44 C196 44 190 108 220 108"/><text class="tag" x="168" y="96">USB-C</text>
+      <path class="link" d="M420 102 C470 102 470 36 520 36"/><text class="tag" x="474" y="62" text-anchor="middle">V+ G Btn</text>
+      <path class="link" d="M420 120 H520"/><text class="tag" x="470" y="113" text-anchor="middle">+ −</text>
+      <path class="link" d="M320 162 V210"/><text class="tag" x="328" y="192">Sig · 5V · G</text>
+      <path class="link" d="M420 232 H460"/>
+      <path class="w wel" d="M564 232 c8 -12 16 12 24 0 s16 12 24 0 s16 12 24 0 s16 12 24 0 s16 12 24 0"/><text class="tag el-t" x="626" y="262" text-anchor="middle">EL wire</text>
+    </svg>
+    </div>
+    <figcaption>What connects to what. Each step below shows only the wires it adds.</figcaption>
+  </figure>
+
+  <article class="step" id="a1">
+    <label class="check"><input type="checkbox" id="cb-a1" data-step="a1"><span class="code">A1</span></label>
+    <div class="body">
+      <h3>Flash CircuitPython onto the board</h3>
+      <ol>
+        <li>Download the UF2 for this exact board from <a href="https://circuitpython.org/board/adafruit_feather_rp2040_prop_maker/">circuitpython.org/board/adafruit_feather_rp2040_prop_maker</a>. Use the latest stable release.</li>
+        <li>Plug the board into the Mac with a USB-C cable.</li>
+        <li>Hold <b>BOOT</b>, tap <b>RESET</b>, then let go of BOOT. A drive named <code>RPI-RP2</code> appears.</li>
+        <li>Drag the <code>.uf2</code> file onto <code>RPI-RP2</code>. The board restarts and comes back as a drive named <code>CIRCUITPY</code>.</li>
+      </ol>
+      <p class="note">This is the RP2040 method. Double-clicking RESET, which older Feathers use, does nothing here.</p>
+    </div>
+  </article>
+
+  <article class="step" id="a2">
+    <label class="check"><input type="checkbox" id="cb-a2" data-step="a2"><span class="code">A2</span></label>
+    <div class="body">
+      <h3>Get the three libraries</h3>
+      <ol>
+        <li>At <a href="https://circuitpython.org/libraries">circuitpython.org/libraries</a>, download the bundle that matches your CircuitPython version. For 10.x firmware that's the "Bundle for Version 10.x".</li>
+        <li>Unzip it. From its <code>lib</code> folder, copy <code>neopixel.mpy</code>, <code>adafruit_pixelbuf.mpy</code> and <code>adafruit_ticks.mpy</code> into the project's <code>firmware/lib</code> folder.</li>
+      </ol>
+      <p class="note">The bundle version has to match the firmware. A 9.x library on 10.x firmware fails at boot.</p>
+    </div>
+  </article>
+
+  <article class="step" id="a3">
+    <label class="check"><input type="checkbox" id="cb-a3" data-step="a3"><span class="code">A3</span></label>
+    <div class="body">
+      <h3>Install the firmware</h3>
+      <p>Run this in Terminal. It checks the libraries are in place and copies everything in the right order, with <code>code.py</code> last.</p>
+      <pre><code>zsh ~/Documents/Claude/Projects/CustomPumpkin/firmware/install_to_board.sh</code></pre>
+      <div class="test"><b>You should see</b>The status light on the board blinks amber for 60 seconds while the motion sensor warms up, then turns dim green.</div>
+      <p>To watch what it's doing, open a serial window. Exit with Ctrl-A, then K, then Y.</p>
+      <pre><code>screen /dev/tty.usbmodem* 115200</code></pre>
+      <p class="note">Until the motion sensor is connected, its input floats and may fire a phantom trigger (the status light turns white). Ignore it for now.</p>
+    </div>
+  </article>
+
+  <article class="step" id="a4">
+    <label class="check"><input type="checkbox" id="cb-a4" data-step="a4"><span class="code">A4</span></label>
+    <div class="body">
+      <h3>Set up the motion sensor</h3>
+      <figure>
+        <div class="fig-scroll">
+        <svg class="dg" viewBox="0 0 440 250" role="img" aria-label="Back of the motion sensor with its pins along the top, reading GND, OUT, VCC from the left. The jumper on the left edge sits on H. The left dial sets range and goes to the middle; the right dial sets delay and turns fully counter-clockwise.">
+          <defs><marker id="ps-arr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="arrowfill"/></marker></defs>
+          <rect class="pcbg" x="40" y="40" width="360" height="190" rx="8"/>
+          <rect class="pin" x="164" y="20" width="12" height="22"/><rect class="pin" x="214" y="20" width="12" height="22"/><rect class="pin" x="264" y="20" width="12" height="22"/>
+          <text class="on-board" x="170" y="62" text-anchor="middle">GND</text><text class="on-board" x="220" y="62" text-anchor="middle">OUT</text><text class="on-board" x="270" y="62" text-anchor="middle">VCC</text>
+          <text class="on-board sub" x="220" y="90" text-anchor="middle">back of the sensor · dome underneath</text>
+          <rect class="pin" x="52" y="104" width="10" height="10"/><rect class="pin" x="52" y="118" width="10" height="10"/><rect class="pin" x="52" y="132" width="10" height="10"/>
+          <rect class="cap" x="48" y="100" width="18" height="30" rx="3"/>
+          <text class="on-board" x="74" y="113">H</text><text class="on-board" x="74" y="141">L</text>
+          <text class="on-board strong" x="90" y="113">← jumper on H</text>
+          <circle class="pot" cx="150" cy="180" r="22"/><path class="potslot" d="M150 164 V196"/>
+          <circle class="pot" cx="290" cy="180" r="22"/><path class="potslot" d="M279 169 L301 191"/>
+          <path class="ccw" d="M326 180 A36 36 0 0 0 254 180" marker-end="url(#ps-arr)"/>
+          <text class="on-board" x="150" y="220" text-anchor="middle">range: middle</text>
+          <text class="on-board" x="290" y="220" text-anchor="middle">delay: fully ↺</text>
+        </svg>
+        </div>
+        <figcaption>Drawn to match your reference card: pins along the top, dials along the bottom.</figcaption>
+      </figure>
+      <ol>
+        <li>Pop the white dome off and read the three pin labels, then put the dome back. With the pins at the top and the dials at the bottom they read <b>GND, OUT, VCC</b> from left to right.</li>
+        <li>Move the jumper to <b>H</b> (repeat trigger). It keeps the output on while someone is still moving, which is what makes the pumpkin ring again if they linger.</li>
+        <li>Turn the <b>delay</b> dial (right) fully counter-clockwise: the shortest hold, about 3 seconds.</li>
+        <li>Set the <b>range</b> dial (left) to the middle, about 5&nbsp;m. Your reference card says clockwise shortens the range and counter-clockwise lengthens it, up to about 7&nbsp;m. Some clone boards run the other way, so you'll confirm it with a walk test on the porch.</li>
+      </ol>
+      <div class="warn"><b>Corrected on Oct 17</b>An earlier version of this step said to turn both dials fully counter-clockwise. On the range dial that's maximum range, not minimum. If you did that, turn it back to the middle.</div>
+    </div>
+  </article>
+
+  <article class="step" id="a5">
+    <label class="check"><input type="checkbox" id="cb-a5" data-step="a5"><span class="code">A5</span></label>
+    <div class="body">
+      <h3>Connect the motion sensor</h3>
+      <figure>
+        <div class="fig-scroll">
+        <svg class="dg" viewBox="0 0 680 320" role="img" aria-label="Front of the Feather: servo header G, V+, Sig from the top, and the green terminal block Neo, G, 5V, Btn, minus, plus from the top. Back of the motion sensor with pins GND, OUT, VCC along the top. Servo G goes to sensor GND, servo V+ to sensor VCC, and the Btn screw to sensor OUT.">
+          <rect class="board" x="40" y="90" width="268" height="180" rx="10"/>
+          <text class="on-board strong" x="56" y="116">FEATHER · front</text>
+          <rect class="part" x="30" y="166" width="16" height="30" rx="3"/><text class="on-board sub" x="56" y="185">USB-C</text>
+          <text class="on-board sub" x="226" y="136" text-anchor="end">servo</text>
+          <rect class="pin" x="212" y="146" width="12" height="12" rx="2"/><rect class="pin" x="212" y="168" width="12" height="12" rx="2"/><rect class="pin" x="212" y="190" width="12" height="12" rx="2"/>
+          <text class="on-board" x="206" y="156" text-anchor="end">G</text><text class="on-board" x="206" y="178" text-anchor="end">V+</text><text class="on-board" x="206" y="200" text-anchor="end">Sig</text>
+          <rect class="tblock" x="240" y="100" width="60" height="160" rx="4"/>
+          <text class="tb-t" x="258" y="117" text-anchor="middle">Neo</text><text class="tb-t" x="258" y="143" text-anchor="middle">G</text><text class="tb-t" x="258" y="169" text-anchor="middle">5V</text>
+          <text class="tb-t" x="258" y="195" text-anchor="middle">Btn</text><text class="tb-t" x="258" y="221" text-anchor="middle">−</text><text class="tb-t" x="258" y="247" text-anchor="middle">+</text>
+          <circle class="screw" cx="284" cy="113" r="9"/><circle class="screw" cx="284" cy="139" r="9"/><circle class="screw" cx="284" cy="165" r="9"/>
+          <circle class="screw" cx="284" cy="191" r="9"/><circle class="screw" cx="284" cy="217" r="9"/><circle class="screw" cx="284" cy="243" r="9"/>
+          <rect class="pcbg" x="430" y="120" width="210" height="170" rx="8"/>
+          <text class="on-board" x="500" y="142" text-anchor="middle">GND</text><text class="on-board" x="540" y="142" text-anchor="middle">OUT</text><text class="on-board" x="580" y="142" text-anchor="middle">VCC</text>
+          <text class="on-board" x="466" y="163">H</text><text class="on-board" x="466" y="187">L</text>
+          <text class="on-board strong" x="545" y="200" text-anchor="middle">MOTION SENSOR</text>
+          <text class="on-board sub" x="545" y="216" text-anchor="middle">back, dome down</text>
+          <text class="on-board sub" x="500" y="284" text-anchor="middle">range</text><text class="on-board sub" x="580" y="284" text-anchor="middle">delay</text>
+          <rect class="pin" x="495" y="102" width="10" height="20" rx="2"/><rect class="pin" x="535" y="102" width="10" height="20" rx="2"/><rect class="pin" x="575" y="102" width="10" height="20" rx="2"/>
+          <rect class="pin" x="441" y="155" width="9" height="9"/><rect class="pin" x="441" y="167" width="9" height="9"/><rect class="pin" x="441" y="179" width="9" height="9"/>
+          <rect class="cap" x="438" y="152" width="15" height="25" rx="2"/>
+          <circle class="pot" cx="500" cy="254" r="13"/><circle class="pot" cx="580" cy="254" r="13"/>
+          <path class="halo" d="M224 174 H236 V44 H580 V102"/><path class="w w5" d="M224 174 H236 V44 H580 V102"/>
+          <path class="halo" d="M224 152 H232 V60 H500 V102"/><path class="w wg" d="M224 152 H232 V60 H500 V102"/>
+          <path class="halo" d="M293 191 H322 V76 H540 V102"/><path class="w ws" d="M293 191 H322 V76 H540 V102"/>
+        </svg>
+        </div>
+        <figcaption>Red and grey are female–female jumpers on the pins. Amber is male–female, male end under the Btn screw. Drawn to match your photos.</figcaption>
+      </figure>
+      <p>USB unplugged. Three jumper wires:</p>
+      <ul>
+        <li>PIR <b>VCC</b> → servo header <b>V+</b>, the middle pin (female–female)</li>
+        <li>PIR <b>GND</b> → servo header <b>G</b>, the top pin (female–female)</li>
+        <li>PIR <b>OUT</b> → the <b>Btn</b> screw, 4th from the top (male–female, male end clamped under the screw)</li>
+      </ul>
+      <p class="note">The terminal labels are printed on the back of the board. From the top, the end nearest the SDA pin, the six screws are Neo, G, 5V, Btn, −, +. The servo header reads G, V+, Sig from the top. Sig stays free until A8.</p>
+      <div class="test"><b>Test</b>Plug in and wait out the 60-second warm-up. Wave a hand at the sensor: the status light turns white and the serial window prints <code>TRIGGER</code>. Give it 10 seconds between waves; that's the cooldown.</div>
+    </div>
+  </article>
+
+  <article class="step" id="a6">
+    <label class="check"><input type="checkbox" id="cb-a6" data-step="a6"><span class="code">A6</span></label>
+    <div class="body">
+      <h3>Connect the speaker</h3>
+      <p>The speaker has no wires, just two solder tabs with small eyelets. You'll add leads without soldering.</p>
+      <ol>
+        <li>Cut the pin off one end of two male–male jumpers. Strip about 1.5&nbsp;cm from the cut ends.</li>
+        <li>Push each bare end through a tab's eyelet, fold it back on itself and twist it tight around the tab. Tug it: it shouldn't move.</li>
+        <li>USB unplugged. Clamp the pin ends under the bottom two screws, <b>−</b> and <b>+</b>. With one speaker, polarity doesn't matter.</li>
+        <li>Once the test below passes, cover each tab joint in a blob of hot glue. It locks the twist and keeps the tabs from touching each other or the metal frame.</li>
+      </ol>
+      <div class="test"><b>Test</b>Wave. You hear one ring of the Teams call sound.</div>
+    </div>
+  </article>
+
+
+
+  <article class="step" id="a7">
+    <label class="check"><input type="checkbox" id="cb-a7" data-step="a7"><span class="code">A7</span></label>
+    <div class="body">
+      <h3>Test the EL wire on its own</h3>
+      <ol>
+        <li>Plug the EL wire's connector into the ABALDI inverter.</li>
+        <li>Plug the inverter's USB plug into any USB charger. The wire glows purple and the inverter hums faintly. Both are normal.</li>
+        <li>Unplug it. The next step cuts the inverter's USB cable, so this is your one chance to test these two parts by themselves.</li>
+      </ol>
+      <div class="warn"><b>If the connectors don't fit each other</b>Cut the lead off the MaxLax battery pack 5&nbsp;cm from its connector, and cut the inverter's output lead the same way. Twist red to red and black to black, then cover each joint completely in hot glue. The battery pack's connector is now your adapter. The inverter output is about 100&nbsp;V, so leave no bare copper showing.</div>
+    </div>
+  </article>
+
+  <article class="step" id="a8">
+    <label class="check"><input type="checkbox" id="cb-a8" data-step="a8"><span class="code">A8</span></label>
+    <div class="body">
+      <h3>Connect the MOSFET module and the EL wire</h3>
+      <p>The module is a switch: when the board's <b>Sig</b> pin goes high, it connects the inverter to power and the EL wire lights. Hold it as in the picture, with the J1 holes on the left and the two blue screw blocks on the right. The top block is the <b>output</b> (OUT− left, OUT+ right). The bottom block is the <b>power input</b> (DC− left, DC+ right).</p>
+      <figure>
+        <div class="fig-scroll">
+        <svg class="dg" viewBox="0 0 720 330" role="img" aria-label="Feather servo Sig, the bottom pin, goes to the module's PWM+ hole. Feather G, the 2nd screw, goes to DC minus and 5V, the 3rd screw, to DC plus on the module's bottom block. The module's top block, OUT plus and OUT minus, goes to the inverter's red and black wires. A short jumper links the J1 GND hole to DC minus.">
+          <rect class="board" x="16" y="30" width="220" height="240" rx="10"/>
+          <text class="on-board strong" x="30" y="54">FEATHER</text>
+          <text class="on-board sub" x="30" y="96">G, V+: PIR</text>
+          <text class="on-board sub" x="146" y="62" text-anchor="end">servo</text>
+          <rect class="pin" x="150" y="68" width="12" height="12" rx="2"/><rect class="pin" x="150" y="92" width="12" height="12" rx="2"/><rect class="pin" x="150" y="116" width="12" height="12" rx="2"/>
+          <text class="on-board" x="144" y="78" text-anchor="end">G</text><text class="on-board" x="144" y="102" text-anchor="end">V+</text><text class="on-board" x="144" y="126" text-anchor="end">Sig</text>
+          <rect class="tblock" x="178" y="40" width="50" height="222" rx="4"/>
+          <text class="tb-t" x="192" y="62" text-anchor="middle">Neo</text><text class="tb-t" x="192" y="96" text-anchor="middle">G</text><text class="tb-t" x="192" y="130" text-anchor="middle">5V</text>
+          <text class="tb-t" x="192" y="164" text-anchor="middle">Btn</text><text class="tb-t" x="192" y="198" text-anchor="middle">−</text><text class="tb-t" x="192" y="232" text-anchor="middle">+</text>
+          <circle class="screw" cx="214" cy="58" r="8"/><circle class="screw" cx="214" cy="92" r="8"/><circle class="screw" cx="214" cy="126" r="8"/>
+          <circle class="screw" cx="214" cy="160" r="8"/><circle class="screw" cx="214" cy="194" r="8"/><circle class="screw" cx="214" cy="228" r="8"/>
+          <rect class="module" x="300" y="104" width="230" height="176" rx="8"/>
+          <circle class="hole-bg" cx="318" cy="160" r="6"/><text class="on-board" x="330" y="164">PWM+</text>
+          <circle class="hole-bg" cx="318" cy="200" r="6"/><text class="on-board" x="330" y="204">GND</text>
+          <text class="on-board sub" x="312" y="130">J1</text>
+          <circle class="ledind" cx="370" cy="244" r="4"/><text class="on-board sub" x="380" y="248">LED</text>
+          <rect class="tblock" x="440" y="128" width="80" height="60" rx="4"/><circle class="screw" cx="458" cy="158" r="10"/><circle class="screw" cx="500" cy="158" r="10"/>
+          <rect class="tblock" x="440" y="212" width="80" height="60" rx="4"/><circle class="screw" cx="458" cy="242" r="10"/><circle class="screw" cx="500" cy="242" r="10"/>
+          <text class="on-board" x="434" y="162" text-anchor="end">OUT−</text><text class="on-board" x="500" y="123" text-anchor="middle">OUT+</text>
+          <text class="on-board" x="434" y="246" text-anchor="end">DC−</text><text class="on-board" x="500" y="207" text-anchor="middle">DC+</text>
+          <path class="w ws" d="M162 122 H170 V20 H280 V160 H312"/>
+          <path class="w wg" d="M222 92 H262 V300 H458 V252"/>
+          <path class="w w5" d="M222 126 H250 V312 H500 V252"/>
+          <path class="w wg thin" d="M312 200 H292 V286 H446 V250" stroke-dasharray="6 4"/>
+          <rect class="part" x="600" y="120" width="86" height="80" rx="8"/>
+          <text x="643" y="154" text-anchor="middle" class="strong">EL</text><text x="643" y="170" text-anchor="middle">inverter</text>
+          <path class="w w5" d="M510 158 H600"/>
+          <path class="w wg" d="M458 148 V92 H643 V120"/>
+          <text class="tag" x="555" y="150" text-anchor="middle">red</text><text class="tag" x="560" y="86" text-anchor="middle">black</text>
+          <path class="w wel" d="M643 200 c-8 12 8 24 0 36 s8 24 0 36"/>
+          <text class="tag el-t" x="660" y="262">EL wire</text>
+        </svg>
+        </div>
+        <figcaption>Dashed: the optional ground link from J1 GND to DC−. The module's LED lights whenever Sig switches the EL on.</figcaption>
+      </figure>
+      <p class="note">Your modules come as a panel of six. Snap one off: lay the score line along a table edge and bend down gently, once per side. The labels on the <b>bottom</b> of the board read differently from the seller's picture: <b>VIN+ / VIN−</b> is the same as DC+ / DC−, and <b>TRIG/PWM</b> is the same as PWM+. Each J1 label covers a pair of holes; either hole in the pair works.</p>
+      <p><b>USB unplugged for all of this.</b></p>
+      <ol>
+        <li><b>Prepare the inverter lead.</b> Cut the inverter's USB cable about 10&nbsp;cm from the plug, keeping the long end on the inverter. Strip 5&nbsp;mm: red is +5&nbsp;V, black is ground. If there are also green and white wires, trim them short and cover the ends with hot glue.</li>
+        <li><b>Inverter to the output block (top).</b> Red under <b>OUT+</b> (right screw), black under <b>OUT−</b> (left screw). Tighten until a tug won't pull them out.</li>
+        <li><b>Make two power leads.</b> Cut a red and a black male–male jumper in half and strip 5&nbsp;mm off each cut end. Keep the halves with pins.</li>
+        <li><b>Power to the input block (bottom).</b> Red lead: bare end under the Feather's <b>5V</b> screw (3rd from the top), pin end under the module's <b>DC+</b> (VIN+, right). Black lead: bare end under the Feather's <b>G</b> screw (2nd), pin end under <b>DC−</b> (VIN−, left).</li>
+        <li><b>Trigger.</b> Push the male end of a male–female jumper into a J1 hole labeled <b>PWM+</b> (TRIG/PWM on the bottom) and fix it with a dab of hot glue. Put the female end on the servo header's <b>Sig</b> pin (bottom pin).</li>
+        <li><b>Ground link (recommended).</b> Push a male pin into the J1 <b>GND</b> hole, glue it, and clamp its other end (stripped) under <b>DC−</b> next to the black lead. The board usually ties these together internally; this makes sure.</li>
+        <li><b>EL wire</b> into the inverter's output connector.</li>
+      </ol>
+      <div class="test"><b>Test</b>Plug in, wait for green, wave. The ring plays, the module's LED lights and the EL glows purple. About 5 seconds after the ring ends, the LED and the EL go dark together.</div>
+      <div class="tbl"><table>
+        <thead><tr><th>You see</th><th>Check</th></tr></thead>
+        <tbody>
+          <tr><td>Module LED never lights</td><td>The PWM+ pin has lost contact or is in the GND hole. Do the ground link in step 6 if you skipped it.</td></tr>
+          <tr><td>LED lights, EL stays dark</td><td>Red and black on OUT+ and OUT−; the power leads on DC+ and DC−; the EL connector seated.</td></tr>
+          <tr><td>EL stays on all the time</td><td>The inverter is on DC+/DC− instead of OUT+/OUT−.</td></tr>
+          <tr><td>Board restarts when the EL comes on</td><td>A loose power lead, or a weak USB adapter.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </article>
+
+  <article class="step" id="a9">
+    <label class="check"><input type="checkbox" id="cb-a9" data-step="a9"><span class="code">A9</span></label>
+    <div class="body">
+      <h3>Run the bench checks</h3>
+      <ul>
+        <li>Ten separate waves, at least 12 seconds apart: exactly ten rings, each with the EL outline.</li>
+        <li>Wave continuously for a minute: a ring about every 10 seconds, stopping when you stop.</li>
+        <li>Point the sensor at a wall and leave the room for 30 minutes: no rings.</li>
+        <li>Pull the USB plug in the middle of a ring and plug it back in: amber for 60 seconds, then green, with nothing stuck on.</li>
+      </ul>
+      <p class="note">An extra ring about 10 seconds after each real one, with nobody moving, means the EL switching is disturbing the sensor's power. Raise <code>COOLDOWN_S</code> to 15 in <code>code.py</code>.</p>
+    </div>
+  </article>
+</section>
+
+<!-- ============================ PHASE B ============================ -->
+<section class="phase" id="phase-b">
+  <div class="phase-head"><span class="letter">B</span><h2>Carve the face</h2></div>
+  <p class="phase-intro">Everything that gets cut into the front. Page 4 of the print template is the full-size version of this drawing.</p>
+  <div class="warn"><b>Respirator on, outdoors</b>Burning polyurethane foam gives off worse fumes than polystyrene. Work with the garage door open and a fan running, and stop every 30 minutes.</div>
+  <figure>
+    <svg class="face" viewBox="0 2 44 54" role="img" aria-label="Face layout: the grey outline is the groove already cut; a dashed purple line marks the tile's inner groove; three numbered circles mark the EL wire holes; a larger circle below marks the motion sensor hole.">
+      <defs><clipPath id="fc-t"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/></clipPath></defs>
+      <g class="reg"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
+      <g class="cover"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
+      <circle class="regline" cx="18" cy="10" r="6"/><circle class="regline" cx="33" cy="13" r="5"/>
+      <circle class="hole" cx="26" cy="42" r=".8"/><circle class="hole" cx="12" cy="10" r=".8"/><circle class="hole" cx="38" cy="13" r=".8"/>
+      <g class="hnum" transform="translate(26 44.7)"><circle r="1.05"/><text y=".47" text-anchor="middle">1</text></g>
+      <g class="hnum" transform="translate(9.8 10)"><circle r="1.05"/><text y=".47" text-anchor="middle">2</text></g>
+      <g class="hnum" transform="translate(40.2 13)"><circle r="1.05"/><text y=".47" text-anchor="middle">3</text></g>
+      <circle class="pirh" cx="22" cy="50.6" r="3.72"/><text x="26.6" y="51.05">PIR hole, 24 mm</text>
+    </svg>
+    <ul class="legend">
+      <li><span class="sw grey"></span>groove you already cut</li>
+      <li><span class="sw hole"></span>EL wire hole, in routing order</li>
+    </ul>
+  </figure>
+
+  <article class="step" id="b1">
+    <label class="check"><input type="checkbox" id="cb-b1" data-step="b1"><span class="code">B1</span></label>
+    <div class="body">
+      <h3>Print page 4 and line it up</h3>
+      <ol>
+        <li>Open <code>assets/print_template.html</code> and print page 4 on the home laser at 100% ("Actual size", never "Fit to page"). Measure the 100&nbsp;mm bar with a ruler before you go on.</li>
+        <li>Lay it over the face and slide it until the grey outline sits on the groove you already cut, with the dotted center line on the pumpkin's vertical center. Tape it down.</li>
+      </ol>
+    </div>
+  </article>
+
+  <article class="step" id="b2">
+    <label class="check"><input type="checkbox" id="cb-b2" data-step="b2"><span class="code">B2</span></label>
+    <div class="body">
+      <h3>Mark the holes</h3>
+      <p>Press a skewer through the paper at the center of each numbered circle and at the center of the motion-sensor circle. Peel the paper off and circle each mark in pencil.</p>
+    </div>
+  </article>
+
+  <article class="step" id="b3">
+    <label class="check"><input type="checkbox" id="cb-b3" data-step="b3"><span class="code">B3</span></label>
+    <div class="body">
+      <h3>Make every groove 3 mm wide and 3 mm deep</h3>
+      <figure>
+        <div class="fig-scroll">
+        <svg class="dg" viewBox="0 0 460 176" role="img" aria-label="Cross-section of the foam wall: a 3 millimetre square groove with the 2.3 millimetre EL wire seated just below the surface and a dab of hot glue on top.">
+          <path class="foam" d="M30 56 H206 V80 H230 V56 H430 V146 H30 Z"/>
+          <circle class="wire-c" cx="218" cy="70.8" r="9.2"/>
+          <path class="glue" d="M203 56 Q218 44 233 56 Z"/>
+          <path class="dim" d="M206 34 H230 M206 29 V39 M230 29 V39"/><text x="218" y="24" text-anchor="middle">3 mm</text>
+          <path class="dim" d="M250 56 V80 M245 56 H255 M245 80 H255"/><text x="258" y="72">3 mm</text>
+          <path class="lead" d="M226 64 L300 36"/><text x="304" y="34">EL wire, 2.3 mm</text>
+          <path class="lead" d="M208 48 L150 30"/><text x="146" y="28" text-anchor="end">hot glue every ~3 cm</text>
+          <text class="sub" x="38" y="50">outside</text><text class="sub" x="38" y="164">inside</text>
+          <text class="sub" x="300" y="118">foam wall, roughly 10 mm</text>
+        </svg>
+        </div>
+      </figure>
+      <p>This covers both heads and the body outline.</p>
+      <ol>
+        <li>Bend the tip of the 5&nbsp;cm bending knife into a U about 3&nbsp;mm wide and 3&nbsp;mm deep. Pulled slowly along a line, it melts a channel in one pass. If you'd rather, cut two lines 3&nbsp;mm apart and lift out the strip between them.</li>
+        <li>Test-fit the EL wire as you go. It should press in to just below the surface.</li>
+        <li>Leave the foam bridges between each head and the body alone. They're what make the heads read as heads.</li>
+      </ol>
+    </div>
+  </article>
+
+
+  <article class="step" id="b5">
+    <label class="check"><input type="checkbox" id="cb-b5" data-step="b5"><span class="code">B5</span></label>
+    <div class="body">
+      <h3>Cut the motion-sensor hole</h3>
+      <p>A 24&nbsp;mm circle all the way through, at the mark on page 4. From inside, check that the dome pokes through and the sensor's circuit board sits flat against the wall.</p>
+    </div>
+  </article>
+
+  <article class="step" id="b6">
+    <label class="check"><input type="checkbox" id="cb-b6" data-step="b6"><span class="code">B6</span></label>
+    <div class="body">
+      <h3>Make the three EL holes</h3>
+      <p>Push a heated skewer or the wand straight through at each numbered center. Each hole carries the wire out and back in, so make them about 5&nbsp;mm.</p>
+      <p>Look inside to check each one comes out where you expect.</p>
+    </div>
+  </article>
+
+  <article class="step" id="b7">
+    <label class="check"><input type="checkbox" id="cb-b7" data-step="b7"><span class="code">B7</span></label>
+    <div class="body">
+      <h3>Cut the speaker port and add feet</h3>
+      <ol>
+        <li>Cut a hole about 35&nbsp;mm across in the bottom, toward the front. The speaker's 20&nbsp;cm jumper leads reach the board wherever it ends up.</li>
+        <li>Glue three foam offcuts, about 12&nbsp;mm tall, under the base so the sound can get out.</li>
+      </ol>
+    </div>
+  </article>
+
+  <article class="step" id="b8">
+    <label class="check"><input type="checkbox" id="cb-b8" data-step="b8"><span class="code">B8</span></label>
+    <div class="body">
+      <h3>Open an access hatch</h3>
+      <p>If the pumpkin's bottom already has an opening, use that. Otherwise cut a 10 × 10&nbsp;cm hatch in the back, angling the knife inward so the plug rests on a lip. Cut a small notch in its bottom edge for the USB cable.</p>
+    </div>
+  </article>
+</section>
+
+<!-- ============================ PHASE C ============================ -->
+<section class="phase" id="phase-c">
+  <div class="phase-head"><span class="letter">C</span><h2>Light box and EL wire</h2></div>
+  <p class="phase-intro">One continuous run of wire, out and back through three holes.</p>
+
+
+
+
+  <article class="step" id="c1">
+    <label class="check"><input type="checkbox" id="cb-c1" data-step="c1"><span class="code">C1</span></label>
+    <div class="body">
+      <h3>Route the EL wire</h3>
+      <figure>
+        <svg class="face" viewBox="0 1 44 51" role="img" aria-label="EL wire route: from the inverter up to hole 1, around the body, inside to hole 2 around the big head, inside to hole 3 around the small head, then cut inside.">
+          <defs>
+            <clipPath id="rt-t"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/></clipPath>
+            <marker id="rt-arr" viewBox="0 0 6 6" refX="5" refY="3" markerUnits="userSpaceOnUse" markerWidth="1.5" markerHeight="1.5" orient="auto"><path d="M0 0 L6 3 L0 6 z" class="ahead"/></marker>
+          </defs>
+          <g class="elbody"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
+          <g class="cover"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
+          <circle class="elline" cx="18" cy="10" r="6"/><circle class="elline" cx="33" cy="13" r="5"/>
+          <path class="jump" d="M26 50.5 V43.2" marker-end="url(#rt-arr)"/><text x="27" y="49.4">from the inverter</text>
+          <path class="jump" d="M26 42 C14 44 1.4 30 11.3 10.6" marker-end="url(#rt-arr)"/>
+          <path class="jump" d="M12 10 C15 1.6 35 1.6 37.6 12.2" marker-end="url(#rt-arr)"/>
+          <circle class="hole" cx="26" cy="42" r=".8"/><circle class="hole" cx="12" cy="10" r=".8"/><circle class="hole" cx="38" cy="13" r=".8"/>
+          <g class="hnum" transform="translate(26 44.7)"><circle r="1.05"/><text y=".47" text-anchor="middle">1</text></g>
+          <g class="hnum" transform="translate(9.8 10)"><circle r="1.05"/><text y=".47" text-anchor="middle">2</text></g>
+          <g class="hnum" transform="translate(40.2 13)"><circle r="1.05"/><text y=".47" text-anchor="middle">3</text></g>
+          <text class="el-t" x="43.6" y="17" text-anchor="end">cut + seal inside</text>
+        </svg>
+        <ul class="legend">
+          <li><span class="sw solid-el"></span>wire in the groove</li>
+          <li><span class="sw dash"></span>wire inside the pumpkin</li>
+        </ul>
+      </figure>
+      <p>The connector stays inside, so you'll be pulling the free end through every hole.</p>
+      <ol>
+        <li>Inside, leave about 25&nbsp;cm of wire at the connector end to reach the inverter. Push the free end out through hole <b>1</b>.</li>
+        <li>Press the wire into the body groove all the way round and back in through hole <b>1</b>. Tack it with hot glue every 3&nbsp;cm or so.</li>
+        <li>Inside, up the left side to hole <b>2</b>. Out, around the big head, and back in through 2.</li>
+        <li>Inside, over the top to hole <b>3</b>. Out, around the small head, and back in through 3.</li>
+      </ol>
+      <p class="note">Let each glue dab set before you pull on the wire. Leave the inside runs loose rather than tight against the wall.</p>
+    </div>
+  </article>
+
+  <article class="step" id="c2">
+    <label class="check"><input type="checkbox" id="cb-c2" data-step="c2"><span class="code">C2</span></label>
+    <div class="body">
+      <h3>Cut and seal the end</h3>
+      <p>Pull the last run snug inside, cut the wire about 2&nbsp;cm past hole 3, and cover the cut end completely with hot glue. Throw the offcut away; a cut piece can't be powered again.</p>
+    </div>
+  </article>
+
+  <article class="step" id="c3">
+    <label class="check"><input type="checkbox" id="cb-c3" data-step="c3"><span class="code">C3</span></label>
+    <div class="body">
+      <h3>Test the outline</h3>
+      <p>Plug the EL connector into the inverter on the bench, power the board, wait for green and wave.</p>
+      <div class="test"><b>Test</b>The whole outline lights. If a section stays dark, the wire is crushed or cracked there: look for a sharp bend or a glue dab that set while the wire was pulled tight.</div>
+    </div>
+  </article>
+</section>
+
+<!-- ============================ PHASE D ============================ -->
+<section class="phase" id="phase-d">
+  <div class="phase-head"><span class="letter">D</span><h2>Install the electronics</h2></div>
+  <p class="phase-intro">With only the sensor, speaker and EL to connect, put the parts wherever they're easy to reach through the hatch.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg class="dg" viewBox="0 0 640 420" role="img" aria-label="Side cutaway of the pumpkin, front on the left: EL outline in the groove on the front, PIR low on the front, the board in its box low on the front wall, which sits face-down over a port in the base, the MOSFET module and inverter on the floor, and the USB cable running to the back hatch.">
+      <text class="sub" x="20" y="30">FRONT</text><text class="sub" x="620" y="30" text-anchor="end">BACK</text>
+      <rect class="stem" x="308" y="40" width="24" height="26" rx="4"/>
+      <path class="foam" d="M320 60 C490 60 590 128 590 232 C590 318 540 372 446 372 L194 372 C100 372 50 318 50 232 C50 128 150 60 320 60 Z"/>
+      <path class="hole-bg" d="M320 76 C478 76 574 136 574 232 C574 308 528 356 446 356 L194 356 C112 356 66 308 66 232 C66 136 162 76 320 76 Z"/>
+      <path class="elglow" d="M60 166 C54 190 51 210 50.5 232 C50.5 250 51 262 53 272"/>
+      <rect class="hole-bg" x="48" y="278" width="20" height="18"/>
+      <path class="dome" d="M54 278 A9 9 0 0 0 54 296 Z"/>
+      <rect class="pcbg" x="68" y="272" width="9" height="30"/>
+      <rect class="part" x="100" y="306" width="74" height="40" rx="6"/><text x="137" y="331" text-anchor="middle">board</text>
+      <rect class="part" x="180" y="341" width="46" height="15" rx="3"/>
+      <rect class="hole-bg" x="186" y="355" width="34" height="18"/>
+      <rect class="module" x="238" y="334" width="56" height="22" rx="3"/>
+      <rect class="part" x="300" y="334" width="56" height="22" rx="3"/>
+      <rect class="foam" x="118" y="372" width="22" height="12"/><rect class="foam" x="300" y="372" width="22" height="12"/><rect class="foam" x="480" y="372" width="22" height="12"/>
+      <path class="porch" d="M20 384 H620"/>
+      <path class="w ws thin" d="M102 316 C92 312 84 306 77 298"/>
+      <path class="jumpx" d="M328 334 C310 280 170 262 70 256"/>
+      <path class="w wg thin" d="M174 340 H548 C560 340 568 332 572 322 H618"/>
+      <rect class="lbox" x="568" y="250" width="22" height="82" fill="none" stroke="var(--muted)" stroke-dasharray="5 4"/>
+      <path class="lead" d="M58 176 L140 120"/><text x="144" y="118">EL outline in the groove</text>
+      <path class="lead" d="M78 288 L150 262"/><text x="154" y="260">PIR, dome out</text>
+      <path class="lead" d="M168 312 L230 290"/><text x="234" y="288">board, low on the front wall</text>
+      <path class="lead" d="M202 362 L232 404"/><text x="236" y="408">speaker face-down over the port</text>
+      <path class="lead" d="M300 334 L360 300"/><text x="364" y="298">module + inverter on the floor</text>
+      <text class="el-t" x="210" y="252">EL wire to hole 1</text>
+      <path class="lead" d="M578 292 L500 200"/><text x="496" y="192" text-anchor="end">back hatch: USB out the notch</text>
+      <text class="tag" x="618" y="314" text-anchor="end">to adapter</text>
+    </svg>
+    </div>
+    <figcaption>Side view, front on the left. Not to scale.</figcaption>
+  </figure>
+
+  <article class="step" id="d1">
+    <label class="check"><input type="checkbox" id="cb-d1" data-step="d1"><span class="code">D1</span></label>
+    <div class="body">
+      <h3>Put the parts in place</h3>
+      <ol>
+        <li>Speaker face-down over the port in the base.</li>
+        <li>The board, in its plastic box, hot-glued low on the inside front wall.</li>
+        <li>MOSFET module and inverter on the floor beside it. Optional: encase the inverter in hot glue, which quiets its hum.</li>
+        <li>Motion sensor into its hole from inside, dome out. Hot-glue the edges of its circuit board to the wall.</li>
+      </ol>
+    </div>
+  </article>
+
+  <article class="step" id="d2">
+    <label class="check"><input type="checkbox" id="cb-d2" data-step="d2"><span class="code">D2</span></label>
+    <div class="body">
+      <h3>Reconnect everything</h3>
+      <p>USB unplugged. Reconnect using the <a href="#wiring">wiring table</a> at the bottom of this page.</p>
+    </div>
+  </article>
+
+
+  <article class="step" id="d3">
+    <label class="check"><input type="checkbox" id="cb-d3" data-step="d3"><span class="code">D3</span></label>
+    <div class="body">
+      <h3>Run a final check</h3>
+      <div class="test"><b>Test</b>Five waves: five rings, each with the purple outline. Then unplug and plug back in once to confirm it starts up on its own.</div>
+    </div>
+  </article>
+
+  <article class="step" id="d4">
+    <label class="check"><input type="checkbox" id="cb-d4" data-step="d4"><span class="code">D4</span></label>
+    <div class="body">
+      <h3>Close it up</h3>
+      <p>Hatch back in and taped, with the USB cable out through the notch.</p>
+    </div>
+  </article>
+</section>
+
+<!-- ============================ PHASE E ============================ -->
+<section class="phase" id="phase-e">
+  <div class="phase-head"><span class="letter">E</span><h2>On the porch</h2></div>
+
+  <article class="step" id="e1">
+    <label class="check"><input type="checkbox" id="cb-e1" data-step="e1"><span class="code">E1</span></label>
+    <div class="body">
+      <h3>Set it up</h3>
+      <p>Put it on the covered porch with the motion sensor facing the walkway, away from direct sun, vents and the grill. Keep the adapter dry. Plug it in; it's ready after the 60-second warm-up.</p>
+    </div>
+  </article>
+
+  <article class="step" id="e2">
+    <label class="check"><input type="checkbox" id="cb-e2" data-step="e2"><span class="code">E2</span></label>
+    <div class="body">
+      <h3>Test it at night</h3>
+      <div class="test"><b>Test</b>Walk up from the sidewalk five times. It should ring at 3 to 4&nbsp;m, be clearly audible from about 5&nbsp;m, and the logo should read from the street.</div>
+    </div>
+  </article>
+
+  <article class="step" id="e3">
+    <label class="check"><input type="checkbox" id="cb-e3" data-step="e3"><span class="code">E3</span></label>
+    <div class="body">
+      <h3>Tune it</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>If</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td>It rings too late</td><td>Turn the range dial (left) a little counter-clockwise for more range, then walk-test. If the range shrank instead, your board runs the other way.</td></tr>
+          <tr><td>Cars, passers-by or animals set it off</td><td>Turn the range dial a little clockwise for less range, or aim the sensor lower.</td></tr>
+          <tr><td>Too loud or too quiet</td><td><code>VOLUME</code>, from 0 to 1</td></tr>
+          <tr><td>Rings too often while someone stands there</td><td>Raise <code>COOLDOWN_S</code></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </article>
+</section>
+
+<!-- ============================ REFERENCE ============================ -->
+<section class="phase ref" id="reference">
+  <div class="phase-head"><span class="letter">R</span><h2>Reference</h2></div>
+
+  <h3 id="wiring">Wiring table</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>From</th><th>To</th><th>Wire</th></tr></thead>
+    <tbody>
+      <tr><td>5&nbsp;V adapter</td><td>Board USB-C</td><td>Anker USB-A to USB-C</td></tr>
+      <tr><td>PIR VCC</td><td>Servo header V+ (middle pin)</td><td>female–female</td></tr>
+      <tr><td>PIR GND</td><td>Servo header G (top pin)</td><td>female–female</td></tr>
+      <tr><td>PIR OUT</td><td>Btn (4th screw)</td><td>male–female</td></tr>
+      <tr><td>Speaker leads</td><td>− and + (5th and 6th screws)</td><td>two jumpers twisted through the tab eyelets, hot-glued</td></tr>
+      <tr><td>Module DC+ (bottom block, right)</td><td>5V (3rd screw)</td><td>half a red jumper</td></tr>
+      <tr><td>Module DC− (bottom block, left)</td><td>G (2nd screw)</td><td>half a black jumper</td></tr>
+      <tr><td>Servo header Sig (bottom pin)</td><td>Module J1 PWM+</td><td>male–female, hot-glued</td></tr>
+      <tr><td>Inverter red / black</td><td>Module OUT+ / OUT− (top block)</td><td>cut USB lead</td></tr>
+      <tr><td>EL wire</td><td>Inverter output</td><td>quick connector</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Status light</h3>
+  <ul class="status">
+    <li><span class="dot" style="background:#E8A13A"></span>Blinking amber: warming up</li>
+    <li><span class="dot" style="background:#3E8E5A"></span>Dim green: armed</li>
+    <li><span class="dot" style="background:#F2F2F2;border:1px solid var(--muted)"></span>White: ringing</li>
+    <li><span class="dot" style="background:#3E63B8"></span>Dim blue: cooldown</li>
+    <li><span class="dot" style="background:#D7392F"></span>Blinking red: startup error</li>
+  </ul>
+
+  <h3>Settings in code.py</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Setting</th><th>Now</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>VOLUME</code></td><td>1.0</td><td>Ring volume, 0 to 1.</td></tr>
+      <tr><td><code>COOLDOWN_S</code></td><td>10</td><td>Seconds between rings.</td></tr>
+      <tr><td><code>REPEAT_IF_OCCUPIED</code></td><td>True</td><td>Ring again every cooldown while someone stays.</td></tr>
+      <tr><td><code>EL_ENABLED</code></td><td>True</td><td>Set False to run without the EL wire.</td></tr>
+      <tr><td><code>WARMUP_S</code></td><td>60</td><td>Sensor warm-up after power-on.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">After any edit, save and press RESET.</p>
+
+  <h3>Troubleshooting</h3>
+  <details><summary>Blinking red at power-on</summary><p>A file is missing or a library is from the wrong bundle version. The serial window names the file. Re-run the install script after fixing it.</p></details>
+  <details><summary>Serial says "EL_PIN and SENSOR_PIN are the same pin"</summary><p>The sensor was moved to the servo Sig pin, which the EL now uses. Put PIR OUT back on the Btn terminal.</p></details>
+  <details><summary>Never rings</summary><p>Wait out the full 60-second warm-up. Check PIR OUT is on Btn, VCC on V+ and GND on G. Watch the serial window for <code>TRIGGER</code> to tell a sensor problem from a sound problem.</p></details>
+  <details><summary>Rings by itself</summary><p>Usually the sensor is still warming up, sees sun or a heat source, or its range dial is too high. On the bench, point it at a wall.</p></details>
+  <details><summary>No sound, everything else works</summary><p>Check the speaker leads are on − and +, not on the LED terminals, and that each twist is still tight on its tab.</p></details>
+  <details><summary>EL stays dark or stays on</summary><p>See the table under A8: the module's LED tells a trigger problem from a wiring problem.</p></details>
+  <details><summary>Board restarts in the middle of a ring</summary><p>A loose or thin USB cable, or a weak adapter. Use the 5&nbsp;V 3&nbsp;A adapter and the Anker cable.</p></details>
+
+  <h3>Files on the Mac</h3>
+  <ul>
+    <li><code>assets/print_template.html</code>, page 4: full-size hole template</li>
+    <li><code>firmware/code.py</code> and <code>firmware/install_to_board.sh</code></li>
+    <li><code>09_EL_Wire_Design.md</code> and <code>10_Build_Changes.md</code>: the reasoning behind this guide</li>
+  </ul>
+</section>
+
+<footer>All paths are inside <code>~/Documents/Claude/Projects/CustomPumpkin</code>. Progress ticks sync between your devices when you're signed in, and stay in this browser otherwise.</footer>
+</main>
+
+<script>
+(function(){
+  var KEY = 'tol-build-progress-v1';
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('input[data-step]'));
+  var total = boxes.length;
+  var fill = document.getElementById('prog-fill');
+  var text = document.getElementById('prog-text');
+  var syncEl = document.getElementById('sync');
+  var nextBtn = document.getElementById('next-btn');
+  var done = new Set();
+  try { var raw = localStorage.getItem(KEY); if (raw) done = new Set(JSON.parse(raw)); } catch (e) {}
+
+  function render(){
+    var n = 0;
+    boxes.forEach(function(b){
+      var on = done.has(b.dataset.step);
+      b.checked = on;
+      b.closest('.step').classList.toggle('is-done', on);
+      if (on) n++;
+    });
+    fill.style.width = (total ? 100 * n / total : 0) + '%';
+    text.textContent = n + ' of ' + total;
+    document.querySelectorAll('[data-count]').forEach(function(el){
+      var p = el.dataset.count;
+      var bs = boxes.filter(function(b){ return b.dataset.step.charAt(0) === p; });
+      var k = bs.filter(function(b){ return done.has(b.dataset.step); }).length;
+      el.textContent = k + '/' + bs.length;
+      el.closest('a').classList.toggle('complete', bs.length > 0 && k === bs.length);
+    });
+    nextBtn.textContent = n === total ? 'All done' : 'Next step';
+  }
+  function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(Array.from(done))); } catch (e) {} }
+  function setSync(state){
+    syncEl.dataset.state = state;
+    syncEl.textContent = state === 'on' ? 'Synced to your account' : 'Saved in this browser';
+  }
+
+  var ref = null, dirty = false, writing = false, timer = null;
+  function flush(){
+    if (!ref || writing || !dirty) return;
+    writing = true; dirty = false;
+    ref.set({ done: Array.from(done).sort() }).catch(function(e){
+      var code = e && e.code;
+      if (code === 'invalid_argument' || code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed' || code === 'quota_exceeded') { ref = null; setSync('local'); }
+      else { dirty = true; }
+    }).then(function(){
+      writing = false;
+      if (dirty && ref) { clearTimeout(timer); timer = setTimeout(flush, 1500); }
+    });
+  }
+
+  boxes.forEach(function(b){
+    b.addEventListener('change', function(){
+      if (b.checked) done.add(b.dataset.step); else done.delete(b.dataset.step);
+      render(); saveLocal();
+      if (ref) { dirty = true; clearTimeout(timer); timer = setTimeout(flush, 700); }
+    });
+  });
+
+  nextBtn.addEventListener('click', function(){
+    var next = boxes.find(function(b){ return !b.checked; });
+    var target = next ? next.closest('.step') : document.getElementById('reference');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  });
+
+  setSync('local');
+  render();
+
+  var c = window.claude;
+  if (!c || typeof c.use !== 'function') return;
+  Promise.all([c.use('db'), c.use('user')]).then(function(res){
+    var db = res[0], user = res[1];
+    if (!db || !user) return;
+    return user.id().then(function(uid){
+      if (!uid) return;
+      var r = db.doc('data/users/' + uid + '/progress');
+      var first = true;
+      ref = r;
+      r.onSnapshot(function(snap){
+        if (dirty || writing) return;
+        var body = snap.exists ? (snap.data() || {}) : {};
+        var remote = new Set(Array.isArray(body.done) ? body.done : []);
+        if (first) {
+          first = false;
+          var merged = new Set(Array.from(remote).concat(Array.from(done)));
+          var grew = merged.size !== remote.size;
+          done = merged; render(); saveLocal(); setSync('on');
+          if (grew) { dirty = true; flush(); }
+          return;
+        }
+        done = remote; render(); saveLocal();
+      }, function(){ ref = null; setSync('local'); });
+    });
+  }).catch(function(){});
+})();
+</script>
