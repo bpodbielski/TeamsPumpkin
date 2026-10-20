@@ -231,7 +231,7 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
     <h2>Current design</h2>
     <ol>
       <li><b>The EL wire is the only light.</b> It traces the outer outline of the logo: both heads and the body. No T cut, no LED strip, no light box.</li>
-      <li><b>Template page&nbsp;4</b> lines up with the groove you already cut and marks the three EL wire holes.</li>
+      <li><b>One printed template</b> (<a href="print_template.html">print_template.html</a>) gives you the outline to groove, the three EL wire holes and the motion-sensor hole, at full size.</li>
     </ol>
   </div>
   <div class="box safety">
@@ -302,8 +302,8 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
     <label class="check"><input type="checkbox" id="cb-a3" data-step="a3"><span class="code">A3</span></label>
     <div class="body">
       <h3>Install the firmware</h3>
-      <p>Run this in Terminal. It checks the libraries are in place and copies everything in the right order, with <code>code.py</code> last.</p>
-      <pre><code>zsh ~/Documents/Claude/Projects/CustomPumpkin/firmware/install_to_board.sh</code></pre>
+      <p>From the repo folder, run this in Terminal (macOS). It checks the libraries are in place and copies everything in the right order, with <code>code.py</code> last.</p>
+      <pre><code>zsh firmware/install_to_board.sh</code></pre>
       <div class="test"><b>You should see</b>The status light on the board blinks amber for 60 seconds while the motion sensor warms up, then turns dim green.</div>
       <p>To watch what it's doing, open a serial window. Exit with Ctrl-A, then K, then Y.</p>
       <pre><code>screen /dev/tty.usbmodem* 115200</code></pre>
@@ -334,15 +334,14 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
           <text class="on-board" x="290" y="220" text-anchor="middle">delay: fully ↺</text>
         </svg>
         </div>
-        <figcaption>Drawn to match your reference card: pins along the top, dials along the bottom.</figcaption>
+        <figcaption>Pins along the top, dials along the bottom. Clone boards vary, so go by the labels on yours.</figcaption>
       </figure>
       <ol>
         <li>Pop the white dome off and read the three pin labels, then put the dome back. With the pins at the top and the dials at the bottom they read <b>GND, OUT, VCC</b> from left to right.</li>
         <li>Move the jumper to <b>H</b> (repeat trigger). It keeps the output on while someone is still moving, which is what makes the pumpkin ring again if they linger.</li>
         <li>Turn the <b>delay</b> dial (right) fully counter-clockwise: the shortest hold, about 3 seconds.</li>
-        <li>Set the <b>range</b> dial (left) to the middle, about 5&nbsp;m. Your reference card says clockwise shortens the range and counter-clockwise lengthens it, up to about 7&nbsp;m. Some clone boards run the other way, so you'll confirm it with a walk test on the porch.</li>
+        <li>Set the <b>range</b> dial (left) to the middle, about 5&nbsp;m. On most boards clockwise shortens the range and counter-clockwise lengthens it, up to about 7&nbsp;m. Some clones run the other way, so you'll confirm it with a walk test on the porch.</li>
       </ol>
-      <div class="warn"><b>Corrected on Oct 17</b>An earlier version of this step said to turn both dials fully counter-clockwise. On the range dial that's maximum range, not minimum. If you did that, turn it back to the middle.</div>
     </div>
   </article>
 
@@ -379,7 +378,7 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
           <path class="halo" d="M293 191 H322 V76 H540 V102"/><path class="w ws" d="M293 191 H322 V76 H540 V102"/>
         </svg>
         </div>
-        <figcaption>Red and grey are female–female jumpers on the pins. Amber is male–female, male end under the Btn screw. Drawn to match your photos.</figcaption>
+        <figcaption>Red and grey are female–female jumpers on the pins. Amber is male–female, male end under the Btn screw. </figcaption>
       </figure>
       <p>USB unplugged. Three jumper wires:</p>
       <ul>
@@ -510,7 +509,7 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
   <p class="phase-intro">Everything that gets cut into the front. Page 4 of the print template is the full-size version of this drawing.</p>
   <div class="warn"><b>Respirator on, outdoors</b>Burning polyurethane foam gives off worse fumes than polystyrene. Work with the garage door open and a fan running, and stop every 30 minutes.</div>
   <figure>
-    <svg class="face" viewBox="0 2 44 54" role="img" aria-label="Face layout: the grey outline is the groove already cut; a dashed purple line marks the tile's inner groove; three numbered circles mark the EL wire holes; a larger circle below marks the motion sensor hole.">
+    <svg class="face" viewBox="0 2 44 54" role="img" aria-label="Face layout: the grey outline is the groove for the EL wire; a dashed purple line marks the tile's inner groove; three numbered circles mark the EL wire holes; a larger circle below marks the motion sensor hole.">
       <defs><clipPath id="fc-t"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/></clipPath></defs>
       <g class="reg"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
       <g class="cover"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
@@ -522,7 +521,7 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
       <circle class="pirh" cx="22" cy="50.6" r="3.72"/><text x="26.6" y="51.05">PIR hole, 24 mm</text>
     </svg>
     <ul class="legend">
-      <li><span class="sw grey"></span>groove you already cut</li>
+      <li><span class="sw grey"></span>EL wire groove</li>
       <li><span class="sw hole"></span>EL wire hole, in routing order</li>
     </ul>
   </figure>
@@ -530,10 +529,11 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
   <article class="step" id="b1">
     <label class="check"><input type="checkbox" id="cb-b1" data-step="b1"><span class="code">B1</span></label>
     <div class="body">
-      <h3>Print page 4 and line it up</h3>
+      <h3>Print the template and trace the outline</h3>
       <ol>
-        <li>Open <code>assets/print_template.html</code> and print page 4 on the home laser at 100% ("Actual size", never "Fit to page"). Measure the 100&nbsp;mm bar with a ruler before you go on.</li>
-        <li>Lay it over the face and slide it until the grey outline sits on the groove you already cut, with the dotted center line on the pumpkin's vertical center. Tape it down.</li>
+        <li>Measure the flat-ish front face of your pumpkin, between the moulding seams.</li>
+        <li>Open <a href="print_template.html">print_template.html</a>, enter your face size and a logo width about 50&nbsp;mm narrower than the face (125&nbsp;mm suits a 7 × 8&nbsp;in face). Print at 100% ("Actual size", never "Fit to page") and measure the 100&nbsp;mm bar with a ruler.</li>
+        <li>Tape it over the face with the dotted line on the pumpkin's vertical center. Press a pencil or skewer along the grey outline every few millimeters so it leaves a dotted line in the foam.</li>
       </ol>
     </div>
   </article>
@@ -542,7 +542,7 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
     <label class="check"><input type="checkbox" id="cb-b2" data-step="b2"><span class="code">B2</span></label>
     <div class="body">
       <h3>Mark the holes</h3>
-      <p>Press a skewer through the paper at the center of each numbered circle and at the center of the motion-sensor circle. Peel the paper off and circle each mark in pencil.</p>
+      <p>Still with the paper on, press a skewer through the center of each numbered circle and at the center of the motion-sensor circle. Peel the paper off, join the outline dots in pencil, and circle each hole mark.</p>
     </div>
   </article>
 
@@ -843,15 +843,15 @@ footer{margin-top:40px;color:var(--muted);font-size:14px}
   <details><summary>EL stays dark or stays on</summary><p>See the table under A8: the module's LED tells a trigger problem from a wiring problem.</p></details>
   <details><summary>Board restarts in the middle of a ring</summary><p>A loose or thin USB cable, or a weak adapter. Use the 5&nbsp;V 3&nbsp;A adapter and the Anker cable.</p></details>
 
-  <h3>Files on the Mac</h3>
+  <h3>Files in the repo</h3>
   <ul>
-    <li><code>assets/print_template.html</code>, page 4: full-size hole template</li>
+    <li><code>docs/print_template.html</code>: full-size outline and hole template</li>
     <li><code>firmware/code.py</code> and <code>firmware/install_to_board.sh</code></li>
-    <li><code>09_EL_Wire_Design.md</code> and <code>10_Build_Changes.md</code>: the reasoning behind this guide</li>
+    <li><code>docs/design-history/</code>: how the design got here, including the options that were dropped</li>
   </ul>
 </section>
 
-<footer>All paths are inside <code>~/Documents/Claude/Projects/CustomPumpkin</code>. Progress ticks sync between your devices when you're signed in, and stay in this browser otherwise.</footer>
+<footer>All paths are relative to the repo: <a href="https://github.com/bpodbielski/TeamsPumpkin">github.com/bpodbielski/TeamsPumpkin</a>. Your ticks are saved in this browser.</footer>
 </main>
 
 <script>

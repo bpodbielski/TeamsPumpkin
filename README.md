@@ -1,75 +1,76 @@
-# CustomPumpkin — the "Teams-o-lantern"
+# Teams-o-lantern
 
-A foam carvable pumpkin that plays a Microsoft Teams sound and lights up a backlit Teams logo when someone walks by. The Teams answer to Guy Dupont's Slack-o-lantern (Oct 2025), built to survive the whole month of October on the porch.
+![A foam pumpkin on a porch at night with a glowing purple outline of the Microsoft Teams logo](docs/img/teams-o-lantern.webp)
 
-**Status (2026-10-15): design changed — EL wire outline.** Glow test FAILED (thinned foam is opaque), so the relief idea is dead. New design: purple EL wire in the outline groove + the T cut through and backlit white by the NeoPixels (`09_EL_Wire_Design.md`). $22.59 of parts ordered, all arriving by Sat Oct 17. Firmware needs a small delta (GPIO20 drives a MOSFET). 16 days to Halloween; the original backlit-insert plan remains the fallback. All 15 decisions confirmed by Ben (table below). `firmware/` is ready to copy to the board when it arrives. Parts to order today; pumpkin + hot knife locally this week. Outlet on the covered porch still to be verified by Ben.
+A foam pumpkin that rings like an incoming Microsoft Teams call when someone walks up to your door, while a purple EL-wire outline of the Teams logo lights up on its face. It's the Teams answer to the [Slack-o-lantern](https://www.dailydot.com/news/man-designs-slack-o-lantern/), built to sit on a porch all October.
 
-## The design in five lines (as decided)
-1. **Brain + audio + lights on one $20 board**: Adafruit RP2040 Prop-Maker Feather (CircuitPython) — built-in 3 W amp, NeoPixel driver, sensor input, all screw terminals → **no soldering**.
-2. **Logo**: the **current (2025) Teams icon**; window cut in its silhouette in a Lowe's 13" foam pumpkin; behind it two stacked color transparencies of the logo (FedEx) on a white diffuser, lit by ~30 NeoPixels from the inside back wall. **Dark between triggers**; snaps to full white on a notification.
-3. **Sensor**: HC-SR501 PIR through a 24 mm hole low on the front, jumper **H** so it re-pings every 10 s while someone stands there.
-4. **Sound**: 40 mm 4 Ω speaker ported through the base; **one ring** of the Teams call sound (from Ben's clip, converted in `assets/`).
-5. **Power**: 5 V/3 A USB wall adapter, **always on** (no timer); the firmware re-arms itself after any power cut.
+**→ [Step-by-step build guide](https://bpodbielski.github.io/TeamsPumpkin/)** with wiring diagrams and a checklist that remembers your progress.
 
-Target: live on the covered porch by **Sat–Sun Oct 3–4**; **≈$125–130 all-in** with tax (07_Order_List.md), including the hot knife and the pumpkin.
+## How it works
 
-## Files
-| File | Purpose |
+A motion sensor watches the walkway. When it sees someone, an Adafruit RP2040 Prop-Maker Feather plays one ring of the Teams call sound through a small speaker and switches on the EL wire through a MOSFET module. If the visitor lingers, it rings again every 10 seconds. It runs from a USB wall adapter, needs no soldering, and restarts by itself after a power cut.
+
+```
+5 V USB adapter ─► Prop-Maker Feather ─┬─► PIR motion sensor
+                                       ├─► 4 Ω speaker
+                                       └─► MOSFET module ─► 5 V EL inverter ─► purple EL wire
+```
+
+## Parts
+
+About US$110–140 in 2026, including the hot knife.
+
+| Part | Example | Notes |
+|---|---|---|
+| Adafruit RP2040 Prop-Maker Feather | Adafruit [5768](https://www.adafruit.com/product/5768) | Board, 3 W audio amp, screw terminals |
+| 40 mm 4 Ω speaker | Adafruit [3968](https://www.adafruit.com/product/3968) | Has solder tabs, no wires; the guide shows a no-solder connection |
+| HC-SR501 PIR motion sensor | any 3-pack | Set the jumper to H |
+| Logic-level MOSFET trigger module (AOD4184 / "XY-MOS") | Amazon `B0FMJH3DML` | Must accept a 3.3 V trigger. Avoid IRF520 modules |
+| Purple EL wire, 3 m, 2.3 mm | MaxLax `B08FCCJR6X` | The outline uses about 1.25 m |
+| 5 V USB EL wire inverter | ABALDI `B085H8TXF2` | 5 V, so it shares the board's supply |
+| 5 V / 3 A USB-A wall adapter + USB-A to USB-C cable | any | Use USB-A, not a USB-C PD charger |
+| Dupont jumper wire kit (M-M, M-F, F-F) | ELEGOO 120 pc | |
+| Foam carvable pumpkin, ~13 in | Holiday Living 13 in (Lowe's) | Needs about 7 × 8 in of fairly flat face |
+| Hot knife / foam cutter | GOCHANGE 4-in-1 (`B092S6WZ35`) | Bend the wire tip into a U to cut the groove |
+| Hot glue gun, small screwdriver, respirator | | Hot-knifing polyurethane foam gives off fumes: work outdoors |
+
+## Wiring
+
+| From | To |
 |---|---|
-| `01_Research_Notes.md` | What the four transcripts teach, what the Slack-o-lantern actually used, verified hardware/logo/sound facts with sources. |
-| `02_Build_Plan.md` | Options considered, recommended architecture, phases + gates + dates, the **adversarial review log** (20 attacks → changes), residual risks, stretch ideas. |
-| `build_guide.html` | **The step-by-step build guide (published as an artifact)** — 33 steps across 5 phases, with diagrams; progress syncs across devices. |
-| `10_Build_Changes.md` | Decisions made while writing the build guide (2-px light box, page 4, hole placement, grounding). |
-| `09_EL_Wire_Design.md` | **Current lighting design (decided 2026-10-15)** — purple EL wire outline + through-cut white T; BOM, wiring, firmware delta, power budget. |
-| `08_Build_Checklist.md` | **One-page tick-list for the garage and the bench** — carve, flash, wire, test, integrate, tune. |
-| `07_Order_List.md` | **Order list with live prices (2026-09-23)** — exact carts, ASINs, links, totals. Start here to buy. |
-| `03_Parts_List.md` | BOM for the recommended path (with prices/sources) and the Arduino alternative. |
-| `04_Wiring.md` | Every connection, sensor settings, power budget, bench checklist. |
-| `05_Firmware_Spec.md` | Delegation-ready spec for `code.py`: pins, config constants, state machine, robustness rules, acceptance tests. |
-| `06_Logo_and_Sound_Assets.md` | Logo versions/colors/geometry, print template usage, materials test, sound sourcing + conversion commands. |
-| `assets/print_template.html` | Open in a browser, set width, print at 100 %: logo insert + window cut silhouette for both logo versions, with a 100 mm scale bar. |
-| `assets/teams_logo_*.svg/.png` | Both Teams logo versions (reference). |
-| `assets/teams_call_1ring_22k_mono.wav`, `..._2rings_...` | Firmware-ready sound files cut from `TeamsCallSound.mp3`. |
-| `TeamsCallSound.mp3` | Ben's source file (Teams incoming-call ringtone, 12 s). |
-| `reference/` | Adafruit's MIT-licensed Prop-Maker pumpkin code — the pattern the firmware follows. |
-| `firmware/` | `code.py`, install/bench README with troubleshooting, `sounds/`, and `sim/sim_state_machine.py` (host-side state-machine tests). |
+| PIR VCC | Feather servo header V+ (middle pin) |
+| PIR GND | Feather servo header G (top pin) |
+| PIR OUT | Feather Btn screw (4th from the top) |
+| Speaker tabs | Feather − and + screws (bottom two) |
+| MOSFET module DC+ / VIN+ | Feather 5V screw (3rd) |
+| MOSFET module DC− / VIN− | Feather G screw (2nd) |
+| MOSFET module PWM+ / TRIG | Feather servo header Sig (bottom pin) |
+| MOSFET module OUT+ / OUT− | EL inverter red / black (cut its USB cable) |
+| EL wire | EL inverter output |
 
-## Decisions (confirmed by Ben, 2026-09-22)
-| # | Question | Decision | Consequence in the plan |
-|---|---|---|---|
-| 1 | Logo rendering | **Backlit print behind a silhouette window** (16×16 matrix stays the optional v1.5 upgrade) | 02 §2a; print template pages 3–4 |
-| 2 | Logo version | **Current 2025 icon** | Template page 1 (insert) + pages 2–3 (cut template, face layout); 3 silhouette islands (two heads + body) |
-| 3 | Idle look | **Off between triggers** | `IDLE_MODE = "off"` |
-| 4 | Sound | **One ring of the call sound, from Ben's clip** | `assets/teams_call_1ring_22k_mono.wav` → `firmware/sounds/teams_call_1ring.wav` |
-| 5 | Sensor | **PIR (HC-SR501) through a 24 mm hole** | RCWL dropped from the BOM (kept as documented fallback) |
-| 6 | Controller | **Prop-Maker Feather / CircuitPython** | — |
-| 7 | Pumpkin | **Lowe's Holiday Living 13" carvable** | Face measured 178 × 203 mm → **logo width 125 mm** |
-| 8 | Lingering visitors | **Re-ping every cooldown while they stand there** | `REPEAT_IF_OCCUPIED = True`; PIR jumper **H** (repeat trigger) |
-| 9 | Cooldown | **10 s** | `COOLDOWN_S = 10` |
-| 10 | Operating window | **Always on, no timer** | Timer removed from BOM; PIR must not face direct sun; expect occasional night-time animal pings |
-| 11 | Location | **Covered porch; outlet access assumed, Ben to verify** | If no outlet: see 02 §6 contingency (power bank with always-on mode, or a cord from inside) |
-| 12 | Printing | **Home B&W laser + FedEx Office** | Pages 2–3 (cut template + face layout) at home; page 1 (color insert) at FedEx: 2× cardstock + 1× paper |
-| 13 | Hot knife | **Buy** (Walnut Hollow) | 03 §A item 12 |
-| 14 | Budget / date | **≈$120–150 OK; live by Oct 3–4** | Order today |
-| 15 | Firmware process | **Lower-tier implementer from the spec, Claude validates; Ben tunes constants in `code.py`** | `firmware/` |
+The Feather's terminal labels are printed on the back of the board. From the top, the screws are Neo, G, 5V, Btn, −, +.
 
-## Decision log
-- **2026-10-17** Design simplified to **EL outer outline only**: no T cut, no LEDs, no light box, no tile groove. Three EL holes. Guide (26 steps) and template page 4 updated.
-- **2026-10-17** All parts in hand; build guide written and published. Design refinements from working out the build (see `10_Build_Changes.md`): strip cut to 2 px in a light box behind the T (`NUM_PIXELS=2`, `NOTIFY_BRIGHTNESS=0.15`), print-template page 4 for the EL layout, tile "C" groove, five EL holes with head holes moved off the foam bridges, corrected grounding (one G on the terminal block).
-- **2026-10-15** Glow test **failed** — thinned craft-pumpkin foam does not transmit light, killing the relief-glow option. Decided the **EL wire hybrid**: purple EL in the groove for the outlines, T cut through and backlit white. Whine objection withdrawn (the inverter is only powered during the notification, masked by the ringtone). Parts: `B08FCCJR6X` + `B085H8TXF2` + `B0FMJH3DML`, $22.59.
-- **2026-10-13** All parts delivered. Face measured **178 × 203 mm (7 × 8 in)** — wider than assumed. **Logo width set to 125 mm** (26 mm clear each side, 71 mm vertical slack). Print template rebuilt: classic-logo pages dropped, now 3 pages (insert / cut silhouette / **new full-size face layout** with the PIR hole positioned). Original Oct 3–4 target slipped; 18 days of runway remain.
-- **2026-09-23** Amazon cart ordered ($74.43) after two review passes — charger swapped when the original showed an Oct 8–10 delivery. Build details surfaced by the review (cut the strip to 30 px keeping the input connector; 9 cm speaker leads) written into 04_Wiring.
-- **2026-09-23** Adafruit cart ordered (board + speaker, $33.31). Live prices for every item captured in 07_Order_List.md; Adafruit found out of stock on PIR/strip/jumpers, so those go to Amazon.
-- **2026-09-22** Firmware v1 implemented by a delegated lower-tier model from the final spec; reviewed and fixed (bootloader procedure, fade easing); 15/15 simulator checks pass.
-- **2026-09-22** All 15 decisions confirmed (table above). Notable changes from the proposal: current 2025 logo instead of classic; idle OFF; PIR only (no RCWL); always-on with no timer; re-ping while occupied → PIR jumper H. Firmware implementation started from the final spec.
-- **2026-09-21 (second pass)** Evaluated Adafruit 4117 purple neon flex and red+blue nOOds for the logo: rejected for Teams (outline-only, side-bend geometry can't make T corners/heads or follow the sphere, soldering at every cut, 12 V). Kept as documented alternative "neon T-tile" (03 §C). Re-instated the 16×16 matrix as the v1.5 upgrade path (03 §D). Idle look recommendation changed to faint purple breathing.
-- **2026-09-21 (second pass)** Sound: Ben's `TeamsCallSound.mp3` (YouTube rip of the call ringtone) confirmed usable; 1-ring and 2-ring WAVs in `assets/` are the firmware inputs.
-- **2026-09-21** Rejected nOOds/neon strokes (Dupont's method): no purple filament, Teams is filled shapes. Rejected LED matrix for v1 (power, diffusion, pixel-art likeness). Chose backlit print insert behind a silhouette window.
-- **2026-09-21** Chose Prop-Maker Feather over Arduino Uno + DFPlayer Mini. Arduino path kept as documented alternative.
-- **2026-09-21** Ben supplied the Teams **call ringtone** (not the message chime). Prepared 1-ring and 2-ring WAVs; firmware designed to take a weighted list of sounds.
+## Repo layout
 
-## Next actions
-1. **Ben, next:** print the three template pages (2–3 at home, 1 at FedEx) and start carving — see `08_Build_Checklist.md`. Verify the porch outlet. ~~Adafruit~~ ✅ ~~Amazon~~ ✅ ~~pumpkin~~ ✅ ~~measure~~ ✅.
-2. **Ben:** print pages 2–3 of `assets/print_template.html` on the home laser; get page 1 printed at FedEx (2× cardstock, 1× plain paper). Check the 100 mm scale bar on both.
-3. **Done:** `firmware/code.py` validated against the spec (review + simulator). Next firmware step is the bench (spec §10 T2, T5–T9) when the board arrives.
-4. **When parts land:** Phase 1 bench test (04_Wiring checklist, spec §10 tests T1–T9), then carve and integrate (02 §4).
+| Path | What it is |
+|---|---|
+| [`docs/index.html`](docs/index.html) | The build guide (served at the link above) |
+| [`docs/print_template.html`](docs/print_template.html) | Full-size template for the outline groove and holes; set your pumpkin's size and print at 100% |
+| [`firmware/`](firmware/) | CircuitPython `code.py`, the sound file, a one-command installer, and setup notes |
+| [`firmware/sim/`](firmware/sim/) | A host-side simulator that tests the trigger, cooldown and EL timing without hardware: `python3 firmware/sim/sim_state_machine.py` |
+| [`assets/`](assets/) | The Teams logo SVG and the call sound (original and trimmed) |
+| [`docs/design-history/`](docs/design-history/) | The research and planning notes, including designs that were tried and dropped |
+| [`reference/`](reference/) | Adafruit's MIT-licensed Prop-Maker example the firmware is based on |
+
+## Quick start
+
+1. Flash CircuitPython for the [Prop-Maker Feather](https://circuitpython.org/board/adafruit_feather_rp2040_prop_maker/) (hold BOOT, tap RESET, drag the UF2).
+2. Copy `neopixel.mpy`, `adafruit_pixelbuf.mpy` and `adafruit_ticks.mpy` from the matching [library bundle](https://circuitpython.org/libraries) into `firmware/lib/`.
+3. Run `zsh firmware/install_to_board.sh` (macOS), or copy `firmware/lib`, `firmware/sounds` and then `firmware/code.py` to the `CIRCUITPY` drive.
+4. Follow the [build guide](https://bpodbielski.github.io/TeamsPumpkin/) for wiring, carving and install.
+
+Settings such as volume and cooldown are constants at the top of `firmware/code.py`; see [`firmware/README.md`](firmware/README.md).
+
+## Credits and license
+
+Code and documentation: MIT, see [LICENSE](LICENSE). The Microsoft Teams name, logo and call sound belong to Microsoft and are not covered by that license; see [`assets/NOTICE.md`](assets/NOTICE.md). This is a fan project, not affiliated with or endorsed by Microsoft. The firmware builds on Adafruit's MIT-licensed Prop-Maker examples, and the carving approach on SKS Props' foam pumpkin tutorial.

@@ -1,7 +1,7 @@
 # code.py -- "Someone's calling" Halloween pumpkin prop
 # Adafruit RP2040 Prop-Maker Feather, CircuitPython 9.x/10.x
 # Motion -> plays a Teams call sound, lights a backlit Teams logo. Once per
-# approach, forever, unattended. Authoritative spec: ../05_Firmware_Spec.md
+# approach, forever, unattended. Authoritative spec: ../docs/design-history/05_Firmware_Spec.md
 # (comments below cite its section numbers). API patterns borrowed from
 # Adafruit's MIT-licensed ../reference/adafruit_propmaker_jack_o_lantern_code.py.
 
@@ -39,10 +39,10 @@ NOTIFY_BRIGHTNESS        = 0.15    # START value -- calibrate in the dark so the
 NOTIFY_ATTACK_S          = 0.05    # snap on
 NOTIFY_HOLD_S            = None    # None = hold until the sound finishes; else seconds
 NOTIFY_FADE_S            = 1.5     # fade back to idle
-EL_ENABLED               = True    # purple EL wire outline (see ../09_EL_Wire_Design.md)
+EL_ENABLED               = True    # purple EL wire outline (see ../docs/design-history/09_EL_Wire_Design.md)
 EL_PIN                   = board.EXTERNAL_SERVO  # GPIO20, servo header "Sig" -> AOD4184 MOSFET gate
 SOUNDS = [                         # (filename, weight); weights need not sum to 1
-    ("sounds/teams_call_1ring.wav", 1.0),   # one ring, from Ben's clip
+    ("sounds/teams_call_1ring.wav", 1.0),   # one ring of the Teams call sound
 ]
 VOLUME                   = 1.0     # mixer voice level 0-1
 SELFTEST_ON_BOOT         = False   # True on the bench: fire one notification 3 s after warm-up

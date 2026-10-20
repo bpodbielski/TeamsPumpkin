@@ -1,6 +1,6 @@
 # Firmware — install and bench procedure
 
-Implements `../05_Firmware_Spec.md` on an **Adafruit RP2040 Prop-Maker Feather**.
+Implements `../docs/design-history/05_Firmware_Spec.md` on an **Adafruit RP2040 Prop-Maker Feather**.
 Read that doc for *why*; this doc is just the *how* to get it flashed and
 running on the bench.
 
@@ -80,8 +80,8 @@ manually after each edit (single-click RESET, or unplug/replug USB, or
    leaving it unattended — otherwise it self-fires once on every boot.
 
 This exercises the same NOTIFY path a real sensor trigger does, without
-needing the PIR wired up yet — it's test **T2** from `05_Firmware_Spec.md`
-§10. Once the PIR is connected, `04_Wiring.md`'s bench-test checklist and
+needing the PIR wired up yet — it's test **T2** from `docs/design-history/05_Firmware_Spec.md`
+§10. Once the PIR is connected, `docs/design-history/04_Wiring.md`'s bench-test checklist and
 the rest of the §10 acceptance tests (T1–T10) are the fuller pass.
 
 ## 5. Watch serial output
@@ -117,8 +117,8 @@ All configuration lives as plain constants at the top of `code.py` (no
 
 | Constant | Default | Effect |
 |---|---|---|
-| `NUM_PIXELS` | `30` | Pixels actually wired on the strip. |
-| `SENSOR_PIN` | `board.EXTERNAL_BUTTON` | Motion sensor input pin. Swap to `board.EXTERNAL_SERVO` only if GPIO19 misbehaves (see `04_Wiring.md` Plan B). |
+| `NUM_PIXELS` | `2` | Optional LEDs on the Neo screw. Nothing needs to be connected there; the outline-only build leaves it empty. |
+| `SENSOR_PIN` | `board.EXTERNAL_BUTTON` | Motion sensor input (the Btn screw). Don't move it to `board.EXTERNAL_SERVO`: the EL wire uses that pin. |
 | `SENSOR_ACTIVE_HIGH` | `True` | Sensor's "motion" logic level. |
 | `WARMUP_S` | `60` | Seconds after boot the sensor is ignored (PIR calibration). |
 | `COOLDOWN_S` | `10` | Minimum seconds between the *start* of one notification and the next. |
@@ -128,7 +128,7 @@ All configuration lives as plain constants at the top of `code.py` (no
 | `IDLE_BRIGHTNESS` | `0.08` | Breathe-mode peak brightness (0–1). |
 | `IDLE_BREATHE_PERIOD_S` | `4.0` | Breathe-mode full cycle length, seconds. |
 | `NOTIFY_COLOR` | `(255, 255, 255)` | Notification flash color. |
-| `NOTIFY_BRIGHTNESS` | `0.70` | Notification brightness cap (0–1); raise carefully — power draw scales with it (see `04_Wiring.md` power budget). |
+| `NOTIFY_BRIGHTNESS` | `0.15` | Brightness of the optional LEDs. No effect if none are connected. |
 | `NOTIFY_ATTACK_S` | `0.05` | Ramp-up time to full brightness. |
 | `NOTIFY_HOLD_S` | `None` | `None` = hold at full brightness until the sound finishes; a number = hold that many seconds instead. |
 | `NOTIFY_FADE_S` | `1.5` | Fade-down time back to the idle level. |
@@ -140,7 +140,7 @@ All configuration lives as plain constants at the top of `code.py` (no
 | `EL_ENABLED` | `True` | Drives the purple EL wire outline. Set `False` to leave GPIO20 untouched and run LEDs-only (the fallback build). |
 | `EL_PIN` | `board.EXTERNAL_SERVO` | GPIO20, servo header `Sig` → AOD4184 MOSFET gate. **Must not equal `SENSOR_PIN`** — the firmware refuses to boot if it does. |
 
-## 7b. EL wire outline (see `../09_EL_Wire_Design.md`)
+## 7b. EL wire outline (see `../docs/design-history/09_EL_Wire_Design.md`)
 
 GPIO20 drives the gate of an AOD4184 MOSFET module that switches the 5 V EL inverter.
 The firmware energises it **on the same tick as the ring** and de-energises it only once
@@ -188,8 +188,8 @@ bench tests are for — but it catches logic regressions before you're standing 
 
 ## Reference
 
-- `../05_Firmware_Spec.md` — the authoritative spec, including the full
+- `../docs/design-history/05_Firmware_Spec.md` — the authoritative spec, including the full
   state machine and the T1–T10 acceptance tests.
-- `../04_Wiring.md` — hardware hookup and the Phase-1 bench-test checklist.
+- `../docs/design-history/04_Wiring.md` — hardware hookup and the Phase-1 bench-test checklist.
 - `../reference/adafruit_propmaker_jack_o_lantern_code.py` — Adafruit's
   MIT-licensed example this firmware's API patterns are borrowed from.

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Teams-o-lantern print template</title>
+<style>
+  :root { --w: 125mm; --cut: 0.93; --face-w: 178mm; --face-h: 203mm; --logo-top: 20mm; --pir: 24mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 11pt -apple-system, Helvetica, Arial, sans-serif; color: #222; background: #f3f3f3; }
+  .controls { position: sticky; top: 0; z-index: 9; background: #fff; border-bottom: 1px solid #ddd;
+              padding: 10px 16px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .controls label { font-weight: 600; font-size: 10pt; }
+  .controls input { width: 4.6em; font-size: 11pt; }
+  .controls .hint { color: #666; font-size: 9.5pt; flex-basis: 100%; }
+  .page { width: 216mm; height: 279mm; margin: 12px auto; padding: 11mm; background: #fff;
+           display: flex; flex-direction: column; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  header h2 { margin: 0 0 3px; font-size: 13pt; }
+  header p { margin: 0 0 2mm; color: #555; font-size: 9.5pt; line-height: 1.35; }
+  .stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  .stage svg.logo { width: var(--w); height: auto; display: block; }
+  .stage.cut svg.logo { width: calc(var(--w) * var(--cut)); filter: brightness(0); }
+  footer { font-size: 8.5pt; color: #555; }
+  .scalebar span { display: inline-block; width: 100mm; height: 2.5mm; background: #000; vertical-align: middle; }
+  .scalebar label { margin-left: 6px; }
+  .meta { margin: 3px 0 0; }
+
+  /* ---- face layout page ---- */
+  .face { position: relative; width: var(--face-w); height: var(--face-h);
+           border: 0.4mm dashed #c00; margin: 0 auto; }
+  .face .vline { position: absolute; left: 50%; top: -6mm; bottom: -6mm; border-left: 0.3mm dashed #09c; }
+  .face .hint-tl, .face .hint-bl { position: absolute; font-size: 7.5pt; color: #c00; }
+  .face .hint-tl { top: 1.5mm; left: 1.5mm; }
+  .face .hint-bl { bottom: 1.5mm; left: 1.5mm; }
+  .face .win { position: absolute; left: 50%; transform: translateX(-50%); width: calc(var(--w) * var(--cut)); }
+  .face .win svg { width: 100%; height: auto; display: block; filter: brightness(0); }
+  .face .win svg.elmap { filter: none; }
+  .face .pir { position: absolute; left: 50%; transform: translate(-50%, -50%);
+                width: var(--pir); height: var(--pir); border: 0.4mm solid #000; border-radius: 50%; }
+  .face .pir::after { content: ""; position: absolute; left: 50%; top: 50%; width: 3mm; height: 3mm;
+                       transform: translate(-50%,-50%); border-left: 0.25mm solid #000; border-top: 0.25mm solid #000; }
+  .face .pirlabel { position: absolute; left: 50%; transform: translateX(-50%); font-size: 7.5pt; color: #333; white-space: nowrap; }
+
+  @page { size: letter portrait; margin: 0; }
+  @media print {
+    body { background: none; }
+    .controls { display: none; }
+    .page { margin: 0; box-shadow: none; page-break-after: always; break-after: page; }
+    .page:last-child { page-break-after: auto; break-after: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="controls">
+  <label for="w">Logo width</label><input id="w" type="number" min="60" max="170" step="1" value="125"> mm
+  <label for="cut">Window scale</label><input id="cut" type="number" min="0.85" max="1" step="0.01" value="0.93">
+  <label for="fw">Face W</label><input id="fw" type="number" min="80" max="200" step="1" value="178"> mm
+  <label for="fh">Face H</label><input id="fh" type="number" min="80" max="240" step="1" value="203"> mm
+  <label for="top">Logo top</label><input id="top" type="number" min="0" max="80" step="1" value="20"> mm
+  <span class="hint">Measure your pumpkin's flat face and enter it (defaults: 7 × 8 in = 178 × 203 mm). Make the logo about 50 mm narrower than the face. <b>Print at 100 % / "Actual size", never "fit to page"</b>, then check the 100 mm bar with a ruler.</span>
+</div>
+
+<section class="page">
+  <header>
+    <h2>EL OUTLINE AND HOLE TEMPLATE, full size</h2>
+    <p>Tape this over the pumpkin's face with the dotted line on its vertical centre and the red box inside the moulding seams. Trace the <b>grey outline</b> (the 3 mm groove for the EL wire) and mark the centre of each <b>numbered circle</b> (EL wire holes, about 5 mm, in routing order) and the PIR circle.</p>
+  </header>
+  <div class="stage" style="align-items:flex-start">
+    <div class="face">
+      <div class="vline"></div>
+      <div class="hint-tl">usable face — do not cut this line</div>
+      <div class="hint-bl">bottom of usable face</div>
+      <div class="win"><svg class="elmap" viewBox="4 4 36 38" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+  <defs><clipPath id="el-torsos"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/></clipPath></defs>
+  <!-- registration: union outline of the body (outer half of a stroke survives the white fill) -->
+  <g stroke="#9a9a9a" stroke-width="0.5" fill="#9a9a9a"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
+  <g fill="#fff"><path d="M7.99988 24c0-3.3137 2.68632-6 6.00002-6h8c3.3137 0 6 2.6863 6 6v12c0 3.3137 2.6863 6 6 6l-16.0001-.0001c-5.5228 0-9.99992-4.4771-9.99992-10z"/><path d="M21.9999 20h12c3.3137 0 6 2.6863 6 6v10c0 3.3137-2.6863 6-6 6s-6-2.6863-6-6V26c0-3.3137-2.6863-6-6-6"/><rect x="4" y="23" width="16" height="16" rx="3.25"/></g>
+  <circle cx="18" cy="10" r="6" fill="none" stroke="#9a9a9a" stroke-width="0.25"/>
+  <circle cx="33" cy="13" r="5" fill="none" stroke="#9a9a9a" stroke-width="0.25"/>
+  <!-- NEW groove: the tile's inner edges (the "C") -->
+  <!-- THROUGH CUT: the T -->
+  <circle cx="26" cy="42" r="0.8" fill="#fff" stroke="#000" stroke-width="0.22"/><circle cx="26" cy="42" r="0.12" fill="#000"/><g transform="translate(26 44.6)"><circle r="0.95" fill="#000"/><text y="0.42" text-anchor="middle" font-size="1.25" font-weight="700" fill="#fff" font-family="Helvetica,Arial,sans-serif">1</text></g><circle cx="12" cy="10" r="0.8" fill="#fff" stroke="#000" stroke-width="0.22"/><circle cx="12" cy="10" r="0.12" fill="#000"/><g transform="translate(9.9 10)"><circle r="0.95" fill="#000"/><text y="0.42" text-anchor="middle" font-size="1.25" font-weight="700" fill="#fff" font-family="Helvetica,Arial,sans-serif">2</text></g><circle cx="38" cy="13" r="0.8" fill="#fff" stroke="#000" stroke-width="0.22"/><circle cx="38" cy="13" r="0.12" fill="#000"/><g transform="translate(40.1 13)"><circle r="0.95" fill="#000"/><text y="0.42" text-anchor="middle" font-size="1.25" font-weight="700" fill="#fff" font-family="Helvetica,Arial,sans-serif">3</text></g>
+</svg></div>
+      <div class="pir"></div>
+      <div class="pirlabel">PIR hole, 24 mm dia</div>
+    </div>
+  </div>
+  <footer>
+    <div class="scalebar"><span></span><label>100 mm — verify with a ruler</label></div>
+    <p class="meta">Route: out ①, around the body, back in ① · inside to ②, around the big head, back in ② · inside to ③, around the small head, back in ③ · cut ~2 cm inside and seal.</p>
+  </footer>
+</section>
+
+<script>
+  const root = document.documentElement, $ = s => document.getElementById(s);
+  const UW = 36, UH = 38;                       // logo units from the SVG viewBox
+  function apply() {
+    const W = +$('w').value, cut = +$('cut').value, FW = +$('fw').value, FH = +$('fh').value, TOP = +$('top').value;
+    const H = W * UH / UW, winW = W * cut, winH = H * cut;
+    root.style.setProperty('--w', W + 'mm');
+    root.style.setProperty('--cut', cut);
+    root.style.setProperty('--face-w', FW + 'mm');
+    root.style.setProperty('--face-h', FH + 'mm');
+    // window is centred on where the printed insert sits
+    const printCentre = TOP + H / 2, winTop = printCentre - winH / 2;
+    document.querySelectorAll('.face .win').forEach(win => win.style.top = winTop + 'mm');
+    const winBottom = winTop + winH, below = FH - winBottom;
+    const pirC = winBottom + below / 2;
+    document.querySelectorAll('.face .pir').forEach(e => e.style.top = pirC + 'mm');
+    document.querySelectorAll('.face .pirlabel').forEach(e => e.style.top = (pirC + 14) + 'mm');
+    const set = (c, v) => document.querySelectorAll('.' + c).forEach(e => e.textContent = v);
+    set('w-out', W.toFixed(0)); set('cut-out', (cut * 100).toFixed(0));
+    set('over-out', ((W - winW) / 2).toFixed(1));
+    set('bridge-out', (2 * W / UW * cut).toFixed(1));
+    set('cw-out', winW.toFixed(1)); set('ch-out', winH.toFixed(1));
+    set('fw-out', FW.toFixed(0)); set('fh-out', FH.toFixed(0));
+    set('wt-out', winTop.toFixed(1)); set('pc-out', pirC.toFixed(1));
+    set('pb-out', (pirC - 12 - winBottom).toFixed(1));
+    set('pbot-out', (FH - pirC - 12).toFixed(1));
+    set('pir-out', '24');
+  }
+  ['w','cut','fw','fh','top'].forEach(id => $(id).addEventListener('input', apply));
+  apply();
+</script>
+</body>
+</html>
